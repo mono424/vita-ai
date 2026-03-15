@@ -1,0 +1,6 @@
+mode: singlenode
+schema: packages/schema
+buckets: []
+clientTypes:
+  - format: typescript
+    output: apps/app/src/schema.gen.ts

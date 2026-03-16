@@ -1,8 +1,47 @@
+# Dependencies
 node_modules/
+.pnpm-store/
+
+# Build output
 dist/
+build/
+.output/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+*.egg-info/
+
+# Spooky
 .spooky/ssp_data/
 .spooky/*.gen.surql
 .spooky/*.surli
 .spooky/surrealdb_data
-.claude/settings.local.json
+
+# Environment files
 *.env.local
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude
+.claude/settings.local.json
+
+# Logs
+*.log
+
+# Lock files (Python)
+# uv.lock is kept for reproducibility

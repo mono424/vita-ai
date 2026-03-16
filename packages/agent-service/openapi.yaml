@@ -1,0 +1,288 @@
+openapi: 3.1.0
+info:
+  title: CV Agent Service
+  description: AI-powered import service for CV data. Supports LinkedIn profile imports and CSV imports.
+  version: 0.1.0
+
+servers:
+  - url: http://localhost:8767
+    description: Local development
+
+paths:
+  /import/linkedin:
+    post:
+      operationId: importLinkedIn
+      summary: Import CV data from LinkedIn profile export
+      description: Parses a LinkedIn data export and maps it to CV entry types using AI.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LinkedInImportRequest"
+      responses:
+        "200":
+          description: Successfully imported LinkedIn data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportResult"
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Import failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /chat:
+    post:
+      operationId: chat
+      summary: Chat with the CV assistant
+      description: Send a message to the AI assistant. It can answer CV-related questions or trigger imports conversationally.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatRequest"
+      responses:
+        "200":
+          description: Chat response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatResponse"
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Chat failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /import/csv:
+    post:
+      operationId: importCSV
+      summary: Import CV data from CSV
+      description: Analyzes CSV content, infers column mappings, and maps rows to CV entry types using AI.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CSVImportRequest"
+      responses:
+        "200":
+          description: Successfully imported CSV data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportResult"
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Import failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    LinkedInImportRequest:
+      type: object
+      required:
+        - linkedin_data
+        - owner_id
+      properties:
+        linkedin_data:
+          type: string
+          description: Raw LinkedIn data export (JSON or text format).
+        owner_id:
+          type: string
+          description: SurrealDB record ID of the user (e.g. "user:abc123").
+
+    CSVImportRequest:
+      type: object
+      required:
+        - csv_content
+        - owner_id
+      properties:
+        csv_content:
+          type: string
+          description: Raw CSV content with headers.
+        owner_id:
+          type: string
+          description: SurrealDB record ID of the user (e.g. "user:abc123").
+        target_table:
+          type: string
+          description: Optional hint for which CV table the CSV maps to (e.g. "experience_entry").
+
+    ImportResult:
+      type: object
+      properties:
+        education_entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/EducationEntry"
+        experience_entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExperienceEntry"
+        project_entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProjectEntry"
+        skill_entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/SkillEntry"
+        social_networks:
+          type: array
+          items:
+            $ref: "#/components/schemas/SocialNetwork"
+        user_updates:
+          $ref: "#/components/schemas/UserUpdates"
+
+    EducationEntry:
+      type: object
+      required:
+        - institution
+      properties:
+        institution:
+          type: string
+        area:
+          type: string
+        degree:
+          type: string
+        start_date:
+          type: string
+        end_date:
+          type: string
+        location:
+          type: string
+        highlights:
+          type: array
+          items:
+            type: string
+
+    ExperienceEntry:
+      type: object
+      required:
+        - company
+      properties:
+        company:
+          type: string
+        position:
+          type: string
+        start_date:
+          type: string
+        end_date:
+          type: string
+        location:
+          type: string
+        highlights:
+          type: array
+          items:
+            type: string
+
+    ProjectEntry:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        start_date:
+          type: string
+        end_date:
+          type: string
+        location:
+          type: string
+        highlights:
+          type: array
+          items:
+            type: string
+
+    SkillEntry:
+      type: object
+      required:
+        - label
+      properties:
+        label:
+          type: string
+        details:
+          type: string
+
+    SocialNetwork:
+      type: object
+      required:
+        - network
+        - network_username
+      properties:
+        network:
+          type: string
+        network_username:
+          type: string
+
+    UserUpdates:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        location:
+          type: string
+        website:
+          type: string
+
+    ChatRequest:
+      type: object
+      required:
+        - message
+        - owner_id
+      properties:
+        message:
+          type: string
+          description: The user's chat message.
+        owner_id:
+          type: string
+          description: SurrealDB record ID of the user (e.g. "user:abc123").
+
+    ChatResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: The assistant's reply.
+        action:
+          type: string
+          enum: [import_linkedin, import_csv, none]
+          description: What action was taken, if any.
+        import_result:
+          $ref: "#/components/schemas/ImportResult"
+
+    ErrorResponse:
+      type: object
+      properties:
+        detail:
+          type: string
+          description: Human-readable error message.

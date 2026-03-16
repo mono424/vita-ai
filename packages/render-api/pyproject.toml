@@ -1,0 +1,13 @@
+[project]
+name = "render-api"
+version = "0.1.0"
+description = "FastAPI server wrapping rendercv CLI"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.104.0",
+    "uvicorn>=0.24.0",
+    "rendercv[full]>=1.0",
+]
+
+[tool.uv]
+dev-dependencies = []

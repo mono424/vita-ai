@@ -1,6 +1,29 @@
 mode: singlenode
 schema: packages/schema
-buckets: []
+backends:
+  render:
+    type: http
+    spec: ./packages/render-api/openapi.yaml
+    baseUrl: http://render:8000
+    method:
+      type: outbox
+      schema: ./src/outbox/render.surql
+      table: jobs_render
+    dev:
+      type: npm
+      script: dev:api
+  agent:
+    type: http
+    spec: ./packages/agent-service/openapi.yaml
+    baseUrl: http://agent:8767
+    method:
+      type: outbox
+      schema: ./src/outbox/agent.surql
+      table: jobs_agent
+    dev:
+      type: npm
+      script: dev:agent
+      env-file: agent.env.local
 clientTypes:
   - format: typescript
     output: apps/app/src/schema.gen.ts

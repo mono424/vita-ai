@@ -3,3 +3,6 @@ dist/
 .spooky/ssp_data/
 .spooky/*.gen.surql
 .spooky/*.surli
+.spooky/surrealdb_data
+.claude/settings.local.json
+*.env.local

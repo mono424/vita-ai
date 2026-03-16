@@ -2,6 +2,7 @@ import { createSignal, Show } from 'solid-js';
 import { SpookyProvider } from '@spooky-sync/client-solid';
 import { AuthProvider, useAuth } from './auth';
 import { dbConfig } from './db';
+import { AppShell } from './components/layout/AppShell';
 
 function AuthForm() {
   const auth = useAuth();
@@ -94,43 +95,6 @@ function AuthForm() {
   );
 }
 
-function Dashboard() {
-  const auth = useAuth();
-
-  return (
-    <div class="min-h-screen bg-zinc-950">
-      <header class="border-b border-white/[0.06] h-14">
-        <div class="max-w-3xl mx-auto px-6 h-full flex items-center justify-between">
-          <h1 class="text-lg font-semibold text-white tracking-tight">cv.khadim.io</h1>
-          <div class="flex items-center gap-4">
-            <Show when={auth.user()}>
-              <span class="text-sm text-zinc-400">{auth.user()?.username}</span>
-            </Show>
-            <button
-              onClick={auth.signOut}
-              class="text-sm text-zinc-500 hover:text-white transition-colors"
-            >
-              Sign out
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main class="max-w-3xl mx-auto px-6 py-8">
-        <div class="bg-zinc-900 border border-white/[0.06] rounded-xl p-6">
-          <h2 class="text-lg font-medium text-white mb-2">Welcome!</h2>
-          <p class="text-zinc-400 text-sm">
-            You're signed in and connected to Spooky. Your data syncs in real-time across all devices.
-          </p>
-          <p class="text-zinc-500 text-sm mt-4">
-            Edit <code class="text-zinc-300 bg-zinc-800 px-1.5 py-0.5 rounded text-xs">src/App.tsx</code> to start building your app.
-          </p>
-        </div>
-      </main>
-    </div>
-  );
-}
-
 export default function App() {
   return (
     <SpookyProvider
@@ -144,7 +108,7 @@ export default function App() {
     >
       <AuthProvider>
         <Show when={useAuth().userId()} fallback={<AuthForm />}>
-          <Dashboard />
+          <AppShell />
         </Show>
       </AuthProvider>
     </SpookyProvider>

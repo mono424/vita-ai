@@ -4,6 +4,8 @@
   "scripts": {
     "dev": "spooky dev",
     "dev:app": "pnpm --filter @cv.khadim.io/app dev",
+    "dev:api": "cd packages/render-api && uv run uvicorn render_api.main:app --reload --port 8765",
+    "dev:agent": "pnpm --filter @cv.khadim.io/agent-service dev",
     "build": "spooky generate && pnpm --filter @cv.khadim.io/app build",
     "generate": "spooky generate",
     "migrate:create": "spooky migrate create",

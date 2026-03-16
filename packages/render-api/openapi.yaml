@@ -1,0 +1,90 @@
+openapi: 3.1.0
+info:
+  title: CV Render API
+  description: Converts RenderCV YAML input into a PDF document.
+  version: 0.1.0
+
+servers:
+  - url: http://localhost:8000
+    description: Local development
+
+paths:
+  /render:
+    post:
+      operationId: renderCv
+      summary: Render a CV to PDF
+      description: Accepts a RenderCV-compatible YAML string and returns the generated PDF.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - yaml_content
+              properties:
+                yaml_content:
+                  type: string
+                  description: Full RenderCV YAML document as a string.
+      responses:
+        "200":
+          description: Generated PDF file
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+              example: attachment; filename="cv.pdf"
+        "422":
+          description: Validation error (invalid request body)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+        "500":
+          description: Render failed (rendercv error or no PDF produced)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    RenderRequest:
+      type: object
+      required:
+        - yaml_content
+      properties:
+        yaml_content:
+          type: string
+          description: Full RenderCV YAML document as a string.
+
+    ErrorResponse:
+      type: object
+      properties:
+        detail:
+          type: string
+          description: Human-readable error message.
+
+    ValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            type: object
+            properties:
+              loc:
+                type: array
+                items:
+                  oneOf:
+                    - type: string
+                    - type: integer
+              msg:
+                type: string
+              type:
+                type: string

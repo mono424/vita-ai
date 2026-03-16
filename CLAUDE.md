@@ -1,0 +1,82 @@
+# test
+
+A real-time, offline-first app powered by **Spooky** — SolidJS + TypeScript + Tailwind CSS + SurrealDB.
+
+## Project Structure
+
+```
+cv.khadim.io/
+├── apps/app/              # SolidJS frontend
+│   ├── src/
+│   │   ├── App.tsx        # Root component
+│   │   ├── db.ts          # Spooky DB client setup
+│   │   ├── schema.gen.ts  # Auto-generated types (DO NOT EDIT)
+│   │   └── ...
+│   └── vite.config.ts
+├── packages/schema/       # SurrealDB schema
+│   ├── src/schema.surql   # Schema definition (SurrealQL)
+│   └── migrations/        # Generated migrations
+├── spooky.yml             # Spooky configuration
+└── pnpm-workspace.yaml
+```
+
+## Key Commands
+
+```bash
+pnpm dev                        # Start Spooky dev server + Vite app
+pnpm generate                   # Regenerate TypeScript types from schema
+pnpm migrate:create <name>      # Create a new migration from schema changes
+pnpm migrate:apply              # Apply pending migrations
+pnpm migrate:status             # Check migration status
+```
+
+## Schema Workflow
+
+1. Edit `packages/schema/src/schema.surql`
+2. Run `pnpm generate` to regenerate `apps/app/src/schema.gen.ts`
+3. Run `pnpm migrate:create <name>` to create a migration
+4. Run `pnpm migrate:apply` to apply it
+
+## MCP DevTools
+
+This project is configured with the **Spooky DevTools MCP server** (`.claude/settings.local.json`). When the browser extension is connected, you have access to:
+
+- **get_state** — inspect the live client-side database state
+- **run_query** — execute SurrealQL queries against the local DB
+- **get_table_data** / **list_tables** — browse table contents
+- **get_auth_state** — check current auth status
+- **get_events** — view real-time sync events
+- **get_active_queries** — see live query subscriptions
+
+Use these tools to debug and inspect the app while it's running in the browser.
+
+## External API Calls (Outbox Pattern)
+
+**NEVER make direct HTTP/fetch calls to external APIs from client code.** Spooky uses an **outbox pattern** — the client writes a job record to SurrealDB, and the Spooky backend processes it server-side.
+
+To add a new API integration:
+1. Run `spooky api add` — this scaffolds the outbox table, schema, and backend config from an OpenAPI spec
+2. The client creates a record in the outbox table (e.g. `db.create("job", { path: "/endpoint", payload: { ... } })`)
+3. The Spooky backend picks up the job, calls the external API, and writes the result back
+
+**Do NOT** use `fetch()`, `axios`, or any HTTP client to call external services directly.
+
+## Working with Record IDs
+
+SurrealDB record IDs (e.g. `user:abc123`) should be treated as **strings** in TypeScript code. Do not try to construct typed `RecordId` objects or use special ID classes — just pass IDs as plain strings.
+
+```typescript
+// Correct
+const userId = "user:abc123";
+db.query("SELECT * FROM user WHERE id = $id", { id: userId });
+
+// Wrong - do not construct RecordId objects
+const userId = new RecordId("user", "abc123");
+```
+
+## Important Notes
+
+- This is a **pnpm monorepo** — always use `pnpm` (not npm/yarn)
+- SurrealDB runs on `http://localhost:8666` during development
+- `schema.gen.ts` is **auto-generated** — never edit it directly; modify `schema.surql` and run `pnpm generate`
+- Schema files use **SurrealQL** (`.surql`), not SQL

@@ -241,6 +241,27 @@ DEFINE FIELD sort_order ON TABLE bullet_entry TYPE option<int>
 PERMISSIONS FULL;
 
 -- ##################################################################
+-- CHAT SESSION TABLE
+-- ##################################################################
+
+DEFINE TABLE chat_session SCHEMAFULL
+PERMISSIONS
+  FOR select, create, update, delete WHERE owner = $auth.id;
+
+DEFINE FIELD owner ON TABLE chat_session TYPE record<user>
+PERMISSIONS
+    FOR select WHERE true
+    FOR create WHERE $access = "account"
+    FOR update WHERE false;
+
+DEFINE FIELD title ON TABLE chat_session TYPE option<string>
+PERMISSIONS FULL;
+
+DEFINE FIELD created_at ON TABLE chat_session TYPE option<datetime>
+VALUE time::now()
+PERMISSIONS FULL;
+
+-- ##################################################################
 -- CHAT MESSAGE TABLE
 -- ##################################################################
 
@@ -268,6 +289,9 @@ DEFINE FIELD job_id ON TABLE chat_message TYPE option<string>
 PERMISSIONS FULL;
 
 DEFINE FIELD import_summary ON TABLE chat_message TYPE option<object> FLEXIBLE
+PERMISSIONS FULL;
+
+DEFINE FIELD session ON TABLE chat_message TYPE option<record<chat_session>>
 PERMISSIONS FULL;
 
 DEFINE FIELD created_at ON TABLE chat_message TYPE option<datetime>

@@ -34,24 +34,26 @@ export function ChatInput(props: ChatInputProps) {
   };
 
   return (
-    <div class="border-t border-white/[0.06] p-3">
-      <div class="flex gap-2 items-end">
+    <div class="px-3 pb-3 pt-2">
+      <div class="flex items-end gap-2 bg-zinc-50 dark:bg-white/[0.04] border border-zinc-200 dark:border-white/[0.08] rounded-xl px-3 py-2 transition-colors focus-within:border-zinc-300 dark:focus-within:border-white/[0.16] focus-within:bg-white dark:focus-within:bg-white/[0.06]">
         <textarea
           ref={textareaRef}
           value={text()}
           onInput={handleInput}
           onKeyDown={handleKeyDown}
-          placeholder="Type a message..."
+          placeholder="Ask VitaAI..."
           disabled={props.disabled}
           rows={1}
-          class="flex-1 bg-zinc-800 border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-500 resize-none focus:outline-none focus:border-zinc-600 transition-colors disabled:opacity-50"
+          class="flex-1 bg-transparent text-[13px] text-zinc-900 dark:text-white placeholder-zinc-400 resize-none focus:outline-none disabled:opacity-50 leading-relaxed"
         />
         <button
           onClick={handleSend}
           disabled={props.disabled || !text().trim()}
-          class="bg-white text-zinc-900 font-medium px-3 py-2 rounded-lg hover:bg-zinc-200 transition-colors disabled:opacity-50 text-sm shrink-0"
+          class="p-1 rounded-lg text-zinc-300 dark:text-zinc-600 transition-all disabled:opacity-30 enabled:text-zinc-900 dark:enabled:text-white enabled:hover:bg-zinc-100 dark:enabled:hover:bg-white/[0.08] shrink-0"
         >
-          Send
+          <svg class="w-4 h-4" viewBox="0 0 16 16" fill="none">
+            <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
         </button>
       </div>
     </div>

@@ -25,7 +25,19 @@ export const schema = {
         job_id: { type: 'string' as const, optional: true },
         owner: { type: 'string' as const, recordId: true, optional: true },
         role: { type: 'string' as const, optional: true },
+        session: { type: 'string' as const, recordId: true, optional: true },
         writing: { type: 'boolean' as const, optional: true },
+      },
+      primaryKey: ['id'] as const
+    },
+    {
+      name: 'chat_session' as const,
+      columns: {
+        id: { type: 'string' as const, recordId: true, optional: false },
+        created_at: { type: 'string' as const, dateTime: true, optional: true },
+        owner: { type: 'string' as const, recordId: true, optional: false },
+        title: { type: 'string' as const, optional: true },
+        chat_messages: { type: 'string' as const, optional: true },
       },
       primaryKey: ['id'] as const
     },
@@ -161,6 +173,7 @@ export const schema = {
         website: { type: 'string' as const, optional: true },
         bullet_entries: { type: 'string' as const, optional: true },
         chat_messages: { type: 'string' as const, optional: true },
+        chat_sessions: { type: 'string' as const, optional: true },
         cv_documents: { type: 'string' as const, optional: true },
         education_entries: { type: 'string' as const, optional: true },
         experience_entries: { type: 'string' as const, optional: true },
@@ -189,6 +202,24 @@ export const schema = {
       field: 'owner' as const,
       to: 'user' as const,
       cardinality: 'one' as const
+    },
+    {
+      from: 'chat_message' as const,
+      field: 'session' as const,
+      to: 'chat_session' as const,
+      cardinality: 'one' as const
+    },
+    {
+      from: 'chat_session' as const,
+      field: 'owner' as const,
+      to: 'user' as const,
+      cardinality: 'one' as const
+    },
+    {
+      from: 'chat_session' as const,
+      field: 'chat_messages' as const,
+      to: 'chat_message' as const,
+      cardinality: 'many' as const
     },
     {
       from: 'cv_document' as const,
@@ -290,6 +321,12 @@ export const schema = {
       from: 'user' as const,
       field: 'chat_messages' as const,
       to: 'chat_message' as const,
+      cardinality: 'many' as const
+    },
+    {
+      from: 'user' as const,
+      field: 'chat_sessions' as const,
+      to: 'chat_session' as const,
       cardinality: 'many' as const
     },
     {
@@ -560,6 +597,23 @@ DEFINE FIELD sort_order ON TABLE bullet_entry TYPE option<int>
 PERMISSIONS FOR select, create, update WHERE true;
 
 -- ##################################################################
+-- CHAT SESSION TABLE
+-- ##################################################################
+
+DEFINE TABLE chat_session SCHEMAFULL
+PERMISSIONS FOR select, create, update, delete WHERE true;
+
+DEFINE FIELD owner ON TABLE chat_session TYPE option<record<user>>
+PERMISSIONS FOR select, create, update WHERE true;
+
+DEFINE FIELD title ON TABLE chat_session TYPE option<string>
+PERMISSIONS FOR select, create, update WHERE true;
+
+DEFINE FIELD created_at ON TABLE chat_session TYPE option<datetime>
+VALUE time::now()
+PERMISSIONS FOR select, create, update WHERE true;
+
+-- ##################################################################
 -- CHAT MESSAGE TABLE
 -- ##################################################################
 
@@ -583,6 +637,9 @@ DEFINE FIELD job_id ON TABLE chat_message TYPE option<string>
 PERMISSIONS FOR select, create, update WHERE true;
 
 DEFINE FIELD import_summary ON TABLE chat_message TYPE option<object> FLEXIBLE
+PERMISSIONS FOR select, create, update WHERE true;
+
+DEFINE FIELD session ON TABLE chat_message TYPE option<record<chat_session>>
 PERMISSIONS FOR select, create, update WHERE true;
 
 DEFINE FIELD created_at ON TABLE chat_message TYPE option<datetime>
@@ -796,6 +853,7 @@ DEFINE FIELD spooky_rv ON TABLE _spooky_schema TYPE int DEFAULT 0 PERMISSIONS FO
 DEFINE FIELD spooky_rv ON TABLE _spooky_stream_processor_state TYPE int DEFAULT 0 PERMISSIONS FOR select, create, update WHERE true;
 DEFINE FIELD spooky_rv ON TABLE bullet_entry TYPE int DEFAULT 0 PERMISSIONS FOR select, create, update WHERE true;
 DEFINE FIELD spooky_rv ON TABLE chat_message TYPE int DEFAULT 0 PERMISSIONS FOR select, create, update WHERE true;
+DEFINE FIELD spooky_rv ON TABLE chat_session TYPE int DEFAULT 0 PERMISSIONS FOR select, create, update WHERE true;
 DEFINE FIELD spooky_rv ON TABLE cv_document TYPE int DEFAULT 0 PERMISSIONS FOR select, create, update WHERE true;
 DEFINE FIELD spooky_rv ON TABLE education_entry TYPE int DEFAULT 0 PERMISSIONS FOR select, create, update WHERE true;
 DEFINE FIELD spooky_rv ON TABLE experience_entry TYPE int DEFAULT 0 PERMISSIONS FOR select, create, update WHERE true;
@@ -834,6 +892,20 @@ THEN {
 
 -- Table: chat_message Client Deletion
 DEFINE EVENT OVERWRITE _spooky_chat_message_client_delete ON TABLE chat_message
+WHEN $event = "DELETE"
+THEN {
+    -- No-op for now.
+};
+
+-- Table: chat_session Client Mutation
+DEFINE EVENT OVERWRITE _spooky_chat_session_client_mutation ON TABLE chat_session
+WHEN $before != $after AND $event != "DELETE"
+THEN {
+    -- No-op for now. Client mutation sync logic moved to DBSP.
+};
+
+-- Table: chat_session Client Deletion
+DEFINE EVENT OVERWRITE _spooky_chat_session_client_delete ON TABLE chat_session
 WHEN $event = "DELETE"
 THEN {
     -- No-op for now.

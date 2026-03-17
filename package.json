@@ -13,7 +13,7 @@
     "migrate:status": "spooky migrate status --url http://localhost:8666"
   },
   "devDependencies": {
-    "@spooky-sync/cli": "0.0.1-canary.16"
+    "@spooky-sync/cli": "0.0.1-canary.17"
   },
   "pnpm": {
     "overrides": {

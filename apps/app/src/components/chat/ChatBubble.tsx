@@ -25,34 +25,34 @@ export function ChatBubble(props: ChatBubbleProps) {
   return (
     <div class={`flex ${isUser() ? 'justify-end' : 'justify-start'}`}>
       <div
-        class={`max-w-[85%] rounded-xl px-3.5 py-2.5 text-sm ${
+        class={`max-w-[85%] text-[13px] leading-relaxed ${
           isUser()
-            ? 'bg-zinc-800 text-white'
-            : 'bg-zinc-900 border border-white/[0.06] text-zinc-200'
+            ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-2xl rounded-br-md px-3.5 py-2.5'
+            : 'text-zinc-700 dark:text-zinc-200 px-1 py-0.5'
         }`}
       >
         <Show
           when={!props.writing}
           fallback={
-            <div class="flex items-center gap-1 py-1">
-              <span class="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" style="animation-delay: 0ms" />
-              <span class="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" style="animation-delay: 150ms" />
-              <span class="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" style="animation-delay: 300ms" />
+            <div class="flex items-center gap-1.5 py-1 px-1">
+              <span class="w-1.5 h-1.5 bg-zinc-300 dark:bg-zinc-500 rounded-full animate-dot-pulse" />
+              <span class="w-1.5 h-1.5 bg-zinc-300 dark:bg-zinc-500 rounded-full animate-dot-pulse" style="animation-delay: 0.2s" />
+              <span class="w-1.5 h-1.5 bg-zinc-300 dark:bg-zinc-500 rounded-full animate-dot-pulse" style="animation-delay: 0.4s" />
             </div>
           }
         >
           <p class="whitespace-pre-wrap">{props.content}</p>
 
           <Show when={props.import_summary && summaryItems().length > 0}>
-            <div class="mt-2 pt-2 border-t border-white/[0.06]">
-              <p class="text-xs text-emerald-400 font-medium mb-1">Imported:</p>
+            <div class={`mt-2 pt-2 ${isUser() ? 'border-t border-white/10' : 'border-t border-zinc-200 dark:border-white/[0.06]'}`}>
+              <p class="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 mb-1">Imported:</p>
               <For each={summaryItems()}>
                 {(item) => (
-                  <p class="text-xs text-zinc-400">{item.count} {item.label}</p>
+                  <p class="text-[11px] text-zinc-400">{item.count} {item.label}</p>
                 )}
               </For>
               <Show when={props.import_summary?.user_updated}>
-                <p class="text-xs text-zinc-400">Profile updated</p>
+                <p class="text-[11px] text-zinc-400">Profile updated</p>
               </Show>
             </div>
           </Show>

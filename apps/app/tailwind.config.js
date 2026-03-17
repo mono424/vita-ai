@@ -12,6 +12,30 @@ export default {
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
+      keyframes: {
+        'chat-in': {
+          '0%': { opacity: '0', transform: 'translateY(8px) scale(0.96)' },
+          '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+        },
+        'chat-out': {
+          '0%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+          '100%': { opacity: '0', transform: 'translateY(8px) scale(0.96)' },
+        },
+        'fab-in': {
+          '0%': { opacity: '0', transform: 'scale(0.8)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        'dot-pulse': {
+          '0%, 80%, 100%': { opacity: '0.3', transform: 'scale(0.8)' },
+          '40%': { opacity: '1', transform: 'scale(1)' },
+        },
+      },
+      animation: {
+        'chat-in': 'chat-in 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+        'chat-out': 'chat-out 0.15s cubic-bezier(0.16, 1, 0.3, 1)',
+        'fab-in': 'fab-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        'dot-pulse': 'dot-pulse 1.4s ease-in-out infinite',
+      },
     },
   },
   plugins: [],

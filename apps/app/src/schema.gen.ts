@@ -19,13 +19,14 @@ export const schema = {
       name: 'chat_message' as const,
       columns: {
         id: { type: 'string' as const, recordId: true, optional: false },
+        chat_session: { type: 'string' as const, recordId: true, optional: false },
         content: { type: 'string' as const, optional: true },
         created_at: { type: 'string' as const, dateTime: true, optional: true },
+        import_result: { type: 'string' as const, optional: true },
         import_summary: { type: 'string' as const, optional: true },
         job_id: { type: 'string' as const, optional: true },
-        owner: { type: 'string' as const, recordId: true, optional: true },
+        owner: { type: 'string' as const, recordId: true, optional: false },
         role: { type: 'string' as const, optional: true },
-        session: { type: 'string' as const, recordId: true, optional: true },
         writing: { type: 'boolean' as const, optional: true },
       },
       primaryKey: ['id'] as const
@@ -49,11 +50,11 @@ export const schema = {
         owner: { type: 'string' as const, recordId: true, optional: false },
         pdf_url: { type: 'string' as const, optional: true },
         section_order: { type: 'string' as const, optional: true },
-        selected_bullets: { type: 'string' as const, recordId: true, optional: true },
-        selected_education: { type: 'string' as const, recordId: true, optional: true },
-        selected_experience: { type: 'string' as const, recordId: true, optional: true },
-        selected_projects: { type: 'string' as const, recordId: true, optional: true },
-        selected_skills: { type: 'string' as const, recordId: true, optional: true },
+        selected_bullets: { type: 'string' as const, recordId: true, optional: false },
+        selected_education: { type: 'string' as const, recordId: true, optional: false },
+        selected_experience: { type: 'string' as const, recordId: true, optional: false },
+        selected_projects: { type: 'string' as const, recordId: true, optional: false },
+        selected_skills: { type: 'string' as const, recordId: true, optional: false },
         theme: { type: 'string' as const, optional: true },
         title: { type: 'string' as const, optional: false },
       },
@@ -199,14 +200,14 @@ export const schema = {
     },
     {
       from: 'chat_message' as const,
-      field: 'owner' as const,
-      to: 'user' as const,
+      field: 'chat_session' as const,
+      to: 'chat_session' as const,
       cardinality: 'one' as const
     },
     {
       from: 'chat_message' as const,
-      field: 'session' as const,
-      to: 'chat_session' as const,
+      field: 'owner' as const,
+      to: 'user' as const,
       cardinality: 'one' as const
     },
     {
@@ -377,14 +378,50 @@ export const schema = {
       routes: {
         "/chat": {
           args: {
+            "message": {
+              type: 'string' as const,
+              optional: false as const
+            },
+            "message_id": {
+              type: 'string' as const,
+              optional: false as const
+            },
+            "owner_id": {
+              type: 'string' as const,
+              optional: false as const
+            },
+            "session": {
+              type: 'string' as const,
+              optional: false as const
+            },
           }
         },
         "/import/csv": {
           args: {
+            "csv_content": {
+              type: 'string' as const,
+              optional: false as const
+            },
+            "owner_id": {
+              type: 'string' as const,
+              optional: false as const
+            },
+            "target_table": {
+              type: 'string' as const,
+              optional: true as const
+            },
           }
         },
         "/import/linkedin": {
           args: {
+            "linkedin_data": {
+              type: 'string' as const,
+              optional: false as const
+            },
+            "owner_id": {
+              type: 'string' as const,
+              optional: false as const
+            },
           }
         },
       }
@@ -636,10 +673,13 @@ PERMISSIONS FOR select, create, update WHERE true;
 DEFINE FIELD job_id ON TABLE chat_message TYPE option<string>
 PERMISSIONS FOR select, create, update WHERE true;
 
+DEFINE FIELD import_result ON TABLE chat_message TYPE option<object> FLEXIBLE
+PERMISSIONS FOR select, create, update WHERE true;
+
 DEFINE FIELD import_summary ON TABLE chat_message TYPE option<object> FLEXIBLE
 PERMISSIONS FOR select, create, update WHERE true;
 
-DEFINE FIELD session ON TABLE chat_message TYPE option<record<chat_session>>
+DEFINE FIELD chat_session ON TABLE chat_message TYPE option<record<chat_session>>
 PERMISSIONS FOR select, create, update WHERE true;
 
 DEFINE FIELD created_at ON TABLE chat_message TYPE option<datetime>
@@ -666,19 +706,19 @@ PERMISSIONS FOR select, create, update WHERE true;
 DEFINE FIELD section_order ON TABLE cv_document TYPE option<array<string>>
 PERMISSIONS FOR select, create, update WHERE true;
 
-DEFINE FIELD selected_education ON TABLE cv_document TYPE option<array<record<education_entry>>>
+DEFINE FIELD selected_education ON TABLE cv_document TYPE option<array<record<education_entry>>> DEFAULT []
 PERMISSIONS FOR select, create, update WHERE true;
 
-DEFINE FIELD selected_experience ON TABLE cv_document TYPE option<array<record<experience_entry>>>
+DEFINE FIELD selected_experience ON TABLE cv_document TYPE option<array<record<experience_entry>>> DEFAULT []
 PERMISSIONS FOR select, create, update WHERE true;
 
-DEFINE FIELD selected_projects ON TABLE cv_document TYPE option<array<record<project_entry>>>
+DEFINE FIELD selected_projects ON TABLE cv_document TYPE option<array<record<project_entry>>> DEFAULT []
 PERMISSIONS FOR select, create, update WHERE true;
 
-DEFINE FIELD selected_skills ON TABLE cv_document TYPE option<array<record<skill_entry>>>
+DEFINE FIELD selected_skills ON TABLE cv_document TYPE option<array<record<skill_entry>>> DEFAULT []
 PERMISSIONS FOR select, create, update WHERE true;
 
-DEFINE FIELD selected_bullets ON TABLE cv_document TYPE option<array<record<bullet_entry>>>
+DEFINE FIELD selected_bullets ON TABLE cv_document TYPE option<array<record<bullet_entry>>> DEFAULT []
 PERMISSIONS FOR select, create, update WHERE true;
 
 DEFINE FIELD include_phone ON TABLE cv_document TYPE option<bool>

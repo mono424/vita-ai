@@ -1,10 +1,10 @@
-mode: cluster
+mode: singlenode
 schema: packages/schema
 backends:
   render:
     type: http
     spec: ./packages/render-api/openapi.yaml
-    baseUrl: http://render:8000
+    baseUrl: http://host.docker.internal:8000
     method:
       type: outbox
       schema: ./src/outbox/render.surql
@@ -15,7 +15,7 @@ backends:
   agent:
     type: http
     spec: ./packages/agent-service/openapi.yaml
-    baseUrl: http://agent:8767
+    baseUrl: http://host.docker.internal:8767
     method:
       type: outbox
       schema: ./src/outbox/agent.surql

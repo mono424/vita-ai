@@ -23,21 +23,21 @@ export function ChatBubble(props: ChatBubbleProps) {
   };
 
   return (
-    <div class={`flex ${isUser() ? 'justify-end' : 'justify-start'}`}>
+    <div class={`flex ${isUser() ? 'justify-end' : 'justify-start'} animate-bubble-in`}>
       <div
-        class={`max-w-[85%] text-[13px] leading-relaxed ${
+        class={`max-w-[85%] text-[13px] leading-[1.6] ${
           isUser()
-            ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-2xl rounded-br-md px-3.5 py-2.5'
-            : 'text-zinc-700 dark:text-zinc-200 px-1 py-0.5'
+            ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-[18px] rounded-br-[4px] px-3.5 py-2.5'
+            : 'bg-zinc-100 dark:bg-white/[0.06] text-zinc-800 dark:text-zinc-200 rounded-[18px] rounded-bl-[4px] px-3.5 py-2.5'
         }`}
       >
         <Show
           when={!props.writing}
           fallback={
-            <div class="flex items-center gap-1.5 py-1 px-1">
-              <span class="w-1.5 h-1.5 bg-zinc-300 dark:bg-zinc-500 rounded-full animate-dot-pulse" />
-              <span class="w-1.5 h-1.5 bg-zinc-300 dark:bg-zinc-500 rounded-full animate-dot-pulse" style="animation-delay: 0.2s" />
-              <span class="w-1.5 h-1.5 bg-zinc-300 dark:bg-zinc-500 rounded-full animate-dot-pulse" style="animation-delay: 0.4s" />
+            <div class="flex items-center gap-1 py-0.5">
+              <span class="w-[5px] h-[5px] bg-zinc-400 dark:bg-zinc-500 rounded-full animate-dot-pulse" />
+              <span class="w-[5px] h-[5px] bg-zinc-400 dark:bg-zinc-500 rounded-full animate-dot-pulse" style="animation-delay: 0.15s" />
+              <span class="w-[5px] h-[5px] bg-zinc-400 dark:bg-zinc-500 rounded-full animate-dot-pulse" style="animation-delay: 0.3s" />
             </div>
           }
         >

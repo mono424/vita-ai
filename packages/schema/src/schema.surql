@@ -269,7 +269,7 @@ DEFINE TABLE chat_message SCHEMAFULL
 PERMISSIONS
   FOR select, create, update, delete WHERE owner = $auth.id;
 
-DEFINE FIELD owner ON TABLE chat_message TYPE option<record<user>>
+DEFINE FIELD owner ON TABLE chat_message TYPE record<user>
 PERMISSIONS
     FOR select WHERE true
     FOR create WHERE $access = "account"
@@ -288,10 +288,13 @@ PERMISSIONS FULL;
 DEFINE FIELD job_id ON TABLE chat_message TYPE option<string>
 PERMISSIONS FULL;
 
+DEFINE FIELD import_result ON TABLE chat_message TYPE option<object> FLEXIBLE
+PERMISSIONS FULL;
+
 DEFINE FIELD import_summary ON TABLE chat_message TYPE option<object> FLEXIBLE
 PERMISSIONS FULL;
 
-DEFINE FIELD session ON TABLE chat_message TYPE option<record<chat_session>>
+DEFINE FIELD chat_session ON TABLE chat_message TYPE record<chat_session>
 PERMISSIONS FULL;
 
 DEFINE FIELD created_at ON TABLE chat_message TYPE option<datetime>
@@ -322,19 +325,19 @@ PERMISSIONS FULL;
 DEFINE FIELD section_order ON TABLE cv_document TYPE option<array<string>>
 PERMISSIONS FULL;
 
-DEFINE FIELD selected_education ON TABLE cv_document TYPE option<array<record<education_entry>>>
+DEFINE FIELD selected_education ON TABLE cv_document TYPE array<record<education_entry>> DEFAULT []
 PERMISSIONS FULL;
 
-DEFINE FIELD selected_experience ON TABLE cv_document TYPE option<array<record<experience_entry>>>
+DEFINE FIELD selected_experience ON TABLE cv_document TYPE array<record<experience_entry>> DEFAULT []
 PERMISSIONS FULL;
 
-DEFINE FIELD selected_projects ON TABLE cv_document TYPE option<array<record<project_entry>>>
+DEFINE FIELD selected_projects ON TABLE cv_document TYPE array<record<project_entry>> DEFAULT []
 PERMISSIONS FULL;
 
-DEFINE FIELD selected_skills ON TABLE cv_document TYPE option<array<record<skill_entry>>>
+DEFINE FIELD selected_skills ON TABLE cv_document TYPE array<record<skill_entry>> DEFAULT []
 PERMISSIONS FULL;
 
-DEFINE FIELD selected_bullets ON TABLE cv_document TYPE option<array<record<bullet_entry>>>
+DEFINE FIELD selected_bullets ON TABLE cv_document TYPE array<record<bullet_entry>> DEFAULT []
 PERMISSIONS FULL;
 
 DEFINE FIELD include_phone ON TABLE cv_document TYPE option<bool>

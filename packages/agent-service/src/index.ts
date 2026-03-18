@@ -2,6 +2,7 @@ import express from "express";
 import { createLinkedInImportGraph } from "./graphs/linkedin-import.js";
 import { createCSVImportGraph } from "./graphs/csv-import.js";
 import { createChatGraph } from "./graphs/chat.js";
+import { updateChatMessage } from "./db.js";
 
 const app = express();
 app.use(express.json({ limit: "10mb" }));
@@ -64,10 +65,10 @@ app.post("/import/csv", async (req, res) => {
 });
 
 app.post("/chat", async (req, res) => {
-  const { message, owner_id } = req.body;
+  const { message, owner_id, session, message_id } = req.body;
 
-  if (!message || !owner_id) {
-    res.status(422).json({ detail: "message and owner_id are required" });
+  if (!message || !owner_id || !session || !message_id) {
+    res.status(422).json({ detail: "message, owner_id, session, and message_id are required" });
     return;
   }
 
@@ -82,7 +83,16 @@ app.post("/chat", async (req, res) => {
       return;
     }
 
-    res.json(result.response);
+    const response = result.response as { message?: string; import_result?: any };
+
+    // Update the placeholder message directly in SurrealDB
+    await updateChatMessage(
+      message_id,
+      response?.message || "Done!",
+      response?.import_result,
+    );
+
+    res.json({ success: true });
   } catch (err) {
     console.error("Chat failed:", err);
     res.status(500).json({ detail: "Chat processing failed" });

@@ -19,7 +19,17 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/LinkedInImportRequest"
+              type: object
+              required:
+                - linkedin_data
+                - owner_id
+              properties:
+                linkedin_data:
+                  type: string
+                  description: Raw LinkedIn data export (JSON or text format).
+                owner_id:
+                  type: string
+                  description: SurrealDB record ID of the user (e.g. "user:abc123").
       responses:
         "200":
           description: Successfully imported LinkedIn data
@@ -50,7 +60,25 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ChatRequest"
+              type: object
+              required:
+                - message
+                - owner_id
+                - session
+                - message_id
+              properties:
+                message:
+                  type: string
+                  description: The user's chat message.
+                owner_id:
+                  type: string
+                  description: SurrealDB record ID of the user (e.g. "user:abc123").
+                session:
+                  type: string
+                  description: SurrealDB record ID of the chat session (e.g. "chat_session:abc123").
+                message_id:
+                  type: string
+                  description: SurrealDB record ID of the placeholder assistant message to update.
       responses:
         "200":
           description: Chat response
@@ -81,7 +109,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CSVImportRequest"
+              type: object
+              required:
+                - csv_content
+                - owner_id
+              properties:
+                csv_content:
+                  type: string
+                  description: Raw CSV content with headers.
+                owner_id:
+                  type: string
+                  description: SurrealDB record ID of the user (e.g. "user:abc123").
+                target_table:
+                  type: string
+                  description: Optional hint for which CV table the CSV maps to (e.g. "experience_entry").
       responses:
         "200":
           description: Successfully imported CSV data
@@ -259,6 +300,8 @@ components:
       required:
         - message
         - owner_id
+        - session
+        - message_id
       properties:
         message:
           type: string
@@ -266,6 +309,12 @@ components:
         owner_id:
           type: string
           description: SurrealDB record ID of the user (e.g. "user:abc123").
+        session:
+          type: string
+          description: SurrealDB record ID of the chat session (e.g. "chat_session:abc123").
+        message_id:
+          type: string
+          description: SurrealDB record ID of the placeholder assistant message to update.
 
     ChatResponse:
       type: object

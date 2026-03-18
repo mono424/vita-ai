@@ -34,16 +34,15 @@ export function ChatPanel(props: ChatPanelProps) {
     });
   };
 
-  // Auto-select most recent session or create one
+  // Auto-select most recent session (don't auto-create)
   createEffect(() => {
+    if (sessionsQuery.isLoading()) return;
     const allSessions = sessions();
     if (activeSessionId()) {
       if (allSessions.some((s: any) => s.id === activeSessionId())) return;
     }
     if (allSessions.length > 0) {
       setActiveSessionId(allSessions[0].id);
-    } else if (auth.userId() && !sessionCreating()) {
-      createNewSession();
     }
   });
 
@@ -66,33 +65,19 @@ export function ChatPanel(props: ChatPanelProps) {
     }
   };
 
-  // Query all chat messages for the current user
+  // Query chat messages for the active session
   const messagesQuery = useQuery(
-    () => db.query('chat_message' as any).where({ owner: auth.userId()! } as any).build() as any,
-    { enabled: () => auth.userId() !== null }
+    () => db.query('chat_message' as any).where({ chat_session: activeSessionId()! } as any).build() as any,
+    { enabled: () => activeSessionId() !== null }
   );
 
-  // Clean up old messages without sessions (from before sessions feature)
-  createEffect(() => {
-    const data = (messagesQuery.data() as any[]) || [];
-    for (const msg of data) {
-      if (!msg.session) {
-        db.delete('chat_message' as any, msg.id as any).catch(() => {});
-      }
-    }
-  });
-
-  // Filter messages by active session client-side
   const messages = () => {
     const data = (messagesQuery.data() as any[]) || [];
-    const sessionId = activeSessionId();
-    return [...data]
-      .filter((m: any) => m.session === sessionId)
-      .sort((a, b) => {
-        const aTime = a.created_at || '';
-        const bTime = b.created_at || '';
-        return aTime < bTime ? -1 : aTime > bTime ? 1 : 0;
-      });
+    return [...data].sort((a, b) => {
+      const aTime = new Date(a.created_at || 0).getTime();
+      const bTime = new Date(b.created_at || 0).getTime();
+      return aTime - bTime;
+    });
   };
 
   const isWriting = () => messages().some((m: any) => m.writing);
@@ -111,43 +96,43 @@ export function ChatPanel(props: ChatPanelProps) {
     const allJobs = jobs();
     const allMessages = messages();
 
-    for (const job of allJobs) {
-      if (processedJobs.has(job.id)) continue;
-      if (job.status !== 'success' && job.status !== 'failed') continue;
-      if (job.path !== '/chat') continue;
+    // Get completed chat jobs for the active session, sorted by creation time (FIFO)
+    const sessionId = activeSessionId();
+    const completedJobs = allJobs
+      .filter((j: any) => {
+        if (j.path !== '/chat' || processedJobs.has(j.id)) return false;
+        if (j.status !== 'success' && j.status !== 'failed') return false;
+        // Match jobs to the active session via the payload
+        try {
+          const payload = typeof j.payload === 'string' ? JSON.parse(j.payload) : j.payload;
+          return payload?.session === sessionId;
+        } catch { return false; }
+      })
+      .sort((a: any, b: any) => {
+        const aTime = a.created_at || '';
+        const bTime = b.created_at || '';
+        return aTime < bTime ? -1 : aTime > bTime ? 1 : 0;
+      });
+
+    // Get writing assistant messages sorted by creation time (FIFO)
+    const writingMessages = allMessages
+      .filter((m: any) => m.role === 'assistant' && m.writing)
+      .sort((a: any, b: any) => {
+        const aTime = a.created_at || '';
+        const bTime = b.created_at || '';
+        return aTime < bTime ? -1 : aTime > bTime ? 1 : 0;
+      });
+
+    // Match oldest completed job to oldest writing message
+    for (let i = 0; i < Math.min(completedJobs.length, writingMessages.length); i++) {
+      const job = completedJobs[i];
+      const assistantMsg = writingMessages[i];
 
       processedJobs.add(job.id);
 
-      const assistantMsg = allMessages.find(
-        (m: any) => m.job_id === job.id && m.role === 'assistant' && m.writing
-      );
-      if (!assistantMsg) continue;
-
       if (job.status === 'success') {
-        const result = job.payload?.result || job.result;
-        const chatResponse = result as { message?: string; action?: string; import_result?: any } | undefined;
-
-        if (chatResponse?.import_result) {
-          importEntries(db, auth.userId()!, chatResponse.import_result)
-            .then((summary: ImportSummary) => {
-              db.update('chat_message' as any, assistantMsg.id as any, {
-                content: chatResponse.message || 'Done!',
-                writing: false,
-                import_summary: summary,
-              } as any);
-            })
-            .catch(() => {
-              db.update('chat_message' as any, assistantMsg.id as any, {
-                content: chatResponse?.message || 'Import completed, but had trouble saving some entries.',
-                writing: false,
-              } as any);
-            });
-        } else {
-          db.update('chat_message' as any, assistantMsg.id as any, {
-            content: chatResponse?.message || 'Done!',
-            writing: false,
-          } as any);
-        }
+        // Agent service updates the placeholder directly via SurrealDB,
+        // nothing to do here — Spooky sync will deliver the update
       } else if (job.status === 'failed') {
         const errors = job.errors as any[] | undefined;
         const lastError = errors?.length ? errors[errors.length - 1] : null;
@@ -155,6 +140,33 @@ export function ChatPanel(props: ChatPanelProps) {
           content: lastError?.message || 'Sorry, something went wrong. Please try again.',
           writing: false,
         } as any);
+      }
+    }
+  });
+
+  // Process import_result on new assistant messages written by the agent service
+  const processedImports = new Set<string>();
+
+  createEffect(() => {
+    const allMessages = messages();
+    const userId = auth.userId();
+    if (!userId) return;
+
+    for (const msg of allMessages) {
+      if (msg.role === 'assistant' && msg.import_result && !processedImports.has(msg.id)) {
+        processedImports.add(msg.id);
+        importEntries(db, userId, msg.import_result)
+          .then((summary: ImportSummary) => {
+            db.update('chat_message' as any, msg.id as any, {
+              import_result: null,
+              import_summary: summary,
+            } as any);
+          })
+          .catch(() => {
+            db.update('chat_message' as any, msg.id as any, {
+              import_result: null,
+            } as any);
+          });
       }
     }
   });
@@ -168,13 +180,22 @@ export function ChatPanel(props: ChatPanelProps) {
 
   const handleSend = async (content: string) => {
     const userId = auth.userId();
-    const sessionId = activeSessionId();
-    if (!userId || !sessionId) return;
+    if (!userId) return;
 
-    const currentSession = sessions().find((s: any) => s.id === sessionId);
-    if (currentSession && !currentSession.title) {
+    // Create a session on first message if none exists
+    let sessionId = activeSessionId();
+    if (!sessionId) {
+      const newId = `chat_session:${crypto.randomUUID().replace(/-/g, '')}`;
       const title = content.length > 40 ? content.slice(0, 40) + '...' : content;
-      await db.update('chat_session' as any, sessionId as any, { title } as any);
+      await db.create(newId as any, { owner: userId, title } as any);
+      setActiveSessionId(newId);
+      sessionId = newId;
+    } else {
+      const currentSession = sessions().find((s: any) => s.id === sessionId);
+      if (currentSession && !currentSession.title) {
+        const title = content.length > 40 ? content.slice(0, 40) + '...' : content;
+        await db.update('chat_session' as any, sessionId as any, { title } as any);
+      }
     }
 
     const userMsgId = `chat_message:${crypto.randomUUID().replace(/-/g, '')}`;
@@ -183,7 +204,7 @@ export function ChatPanel(props: ChatPanelProps) {
       role: 'user',
       content,
       writing: false,
-      session: sessionId,
+      chat_session: sessionId,
     } as any);
 
     const assistantMsgId = `chat_message:${crypto.randomUUID().replace(/-/g, '')}`;
@@ -192,27 +213,19 @@ export function ChatPanel(props: ChatPanelProps) {
       role: 'assistant',
       content: '',
       writing: true,
-      job_id: '',
-      session: sessionId,
+      chat_session: sessionId,
     } as any);
 
     try {
       await db.run('agent' as any, '/chat' as any, {
         message: content,
         owner_id: userId,
+        session: sessionId,
+        message_id: assistantMsgId,
       } as any, {
         assignedTo: userId,
       });
 
-      setTimeout(async () => {
-        const currentJobs = jobs().filter((j: any) => j.path === '/chat');
-        if (currentJobs.length > 0) {
-          const latest = currentJobs[currentJobs.length - 1];
-          await db.update('chat_message' as any, assistantMsgId as any, {
-            job_id: latest.id,
-          } as any);
-        }
-      }, 100);
     } catch (err: any) {
       await db.update('chat_message' as any, assistantMsgId as any, {
         content: err.message || 'Failed to send message. Please try again.',
@@ -230,7 +243,7 @@ export function ChatPanel(props: ChatPanelProps) {
     <div class="fixed bottom-6 right-6 z-50 flex flex-col w-[400px] h-[600px] animate-chat-in"
       style="max-height: calc(100vh - 48px)"
     >
-      <div class="flex flex-col h-full bg-white dark:bg-zinc-900 rounded-2xl shadow-[0_0_0_1px_rgba(0,0,0,0.06),0_16px_60px_-12px_rgba(0,0,0,0.25),0_8px_20px_-8px_rgba(0,0,0,0.15)] overflow-hidden">
+      <div class="flex flex-col h-full bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-white/10 shadow-[0_16px_60px_-12px_rgba(0,0,0,0.25),0_8px_20px_-8px_rgba(0,0,0,0.15)] overflow-hidden">
         {/* Header */}
         <div class="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-white/[0.06]">
           <div class="flex items-center gap-2 min-w-0 flex-1">

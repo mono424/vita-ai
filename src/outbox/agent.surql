@@ -43,7 +43,8 @@ PERMISSIONS
 DEFINE FIELD errors ON TABLE jobs_agent TYPE array<object> DEFAULT ALWAYS []
 PERMISSIONS
   FOR create WHERE true
-  FOR select, update WHERE false;
+  FOR select WHERE true
+  FOR update WHERE false;
 
 DEFINE FIELD updated_at ON TABLE jobs_agent TYPE datetime
 DEFAULT ALWAYS time::now()

@@ -16,7 +16,7 @@ export function AppShell() {
   };
 
   return (
-    <div class="min-h-screen bg-zinc-950 flex flex-col">
+    <div class="h-screen bg-zinc-950 flex flex-col">
       <header class="border-b border-white/[0.06] h-14 shrink-0">
         <div class="px-6 h-full flex items-center justify-between">
           <h1 class="text-lg font-semibold text-white tracking-tight">cv.khadim.io</h1>
@@ -34,17 +34,21 @@ export function AppShell() {
         </div>
       </header>
 
-      <div class="flex flex-1 overflow-hidden">
+      <div class="flex flex-1 min-h-0">
         <Sidebar activeView={activeView()} onNavigate={setActiveView} />
-        <main class="flex-1 overflow-y-auto p-6">
-          <div class="max-w-4xl mx-auto">
-            <Show when={activeView() === 'profile'}>
-              <ProfileEditor />
-            </Show>
-            <Show when={cvId()}>
+        <main class="flex-1 overflow-y-auto">
+          <Show when={activeView() === 'profile'}>
+            <div class="p-8">
+              <div class="max-w-4xl mx-auto">
+                <ProfileEditor />
+              </div>
+            </div>
+          </Show>
+          <Show when={cvId()}>
+            <div class="p-6 h-full">
               <CvEditor cvId={cvId()!} />
-            </Show>
-          </div>
+            </div>
+          </Show>
         </main>
       </div>
 

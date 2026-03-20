@@ -2,7 +2,8 @@ import { StateGraph, Annotation, END } from "@langchain/langgraph";
 import { ChatAnthropic } from "@langchain/anthropic";
 import { createLinkedInImportGraph } from "./linkedin-import.js";
 import { createCSVImportGraph } from "./csv-import.js";
-import type { ChatGraphState, ChatResponse, ImportResult } from "../types.js";
+import { readBucketFile, getMimeType, isImageFile } from "../db.js";
+import type { ChatGraphState, ChatResponse, ChatFile, ResolvedFile, ImportResult } from "../types.js";
 
 const model = new ChatAnthropic({
   model: "claude-sonnet-4-6",
@@ -12,11 +13,81 @@ const model = new ChatAnthropic({
 const ChatStateAnnotation = Annotation.Root({
   message: Annotation<string>,
   owner_id: Annotation<string>,
-  intent: Annotation<"chat" | "import_linkedin" | "import_csv" | undefined>,
+  intent: Annotation<"chat" | "import_linkedin" | "import_csv" | "update_profile" | undefined>,
   extracted_data: Annotation<string | undefined>,
   response: Annotation<ChatResponse | undefined>,
   error: Annotation<string | undefined>,
+  files: Annotation<ChatFile[] | undefined>,
+  resolved_files: Annotation<ResolvedFile[] | undefined>,
 });
+
+const MAX_TEXT_LENGTH = 50_000;
+
+async function resolveFiles(
+  state: ChatGraphState
+): Promise<Partial<ChatGraphState>> {
+  if (!state.files || state.files.length === 0) {
+    return {};
+  }
+
+  const resolved: ResolvedFile[] = [];
+
+  for (const file of state.files) {
+    try {
+      const data = await readBucketFile(file.path);
+      if (!data) continue;
+
+      const mime = getMimeType(file.name);
+
+      if (isImageFile(file.name)) {
+        const base64 = Buffer.from(data).toString("base64");
+        resolved.push({ name: file.name, mime, content: base64 });
+      } else if (mime === "application/pdf") {
+        try {
+          const pdfParse = (await import("pdf-parse")).default;
+          const result = await pdfParse(Buffer.from(data));
+          const text = result.text.slice(0, MAX_TEXT_LENGTH);
+          resolved.push({ name: file.name, mime: "text/plain", content: text });
+        } catch {
+          resolved.push({ name: file.name, mime: "text/plain", content: "[Could not extract PDF text]" });
+        }
+      } else {
+        const text = new TextDecoder().decode(data).slice(0, MAX_TEXT_LENGTH);
+        resolved.push({ name: file.name, mime, content: text });
+      }
+    } catch (err) {
+      console.error(`Failed to resolve file ${file.path}:`, err);
+    }
+  }
+
+  return { resolved_files: resolved };
+}
+
+function buildUserContent(
+  message: string,
+  resolvedFiles?: ResolvedFile[]
+): any {
+  if (!resolvedFiles || resolvedFiles.length === 0) {
+    return message;
+  }
+
+  const content: any[] = [];
+  let textParts = message;
+
+  for (const file of resolvedFiles) {
+    if (isImageFile(file.name)) {
+      content.push({
+        type: "image_url",
+        image_url: { url: `data:${file.mime};base64,${file.content}` },
+      });
+    } else {
+      textParts += `\n\n[Attached file: ${file.name}]\n${file.content}`;
+    }
+  }
+
+  content.unshift({ type: "text", text: textParts });
+  return content;
+}
 
 async function classifyAndExtract(
   state: ChatGraphState
@@ -27,20 +98,26 @@ async function classifyAndExtract(
       content: `You are a CV assistant that helps users manage their profile data. Classify the user's intent as one of:
 - "import_linkedin": The user is pasting LinkedIn profile data or asking to import from LinkedIn. The message likely contains structured profile data (experience, education, etc.).
 - "import_csv": The user is pasting CSV data or asking to import from a CSV.
+- "update_profile": The user wants to update their personal information (name, email, phone, location, website). Only use this when the user clearly wants to change a specific profile field.
 - "chat": General conversation about their CV, profile, career advice, or anything else.
+
+IMPORTANT: When the user's intent is ambiguous — for example, data that could be either an import or a profile update, or a message that is unclear — classify as "chat" and ask the user to clarify what they'd like to do. Only classify as "update_profile" when clearly updating personal info fields. Only classify as "import_linkedin" or "import_csv" when data clearly contains structured CV entries or the user explicitly asks to import.
 
 Respond with a JSON object:
 {
-  "intent": "chat" | "import_linkedin" | "import_csv",
+  "intent": "chat" | "import_linkedin" | "import_csv" | "update_profile",
   "extracted_data": "<the raw data to import, if intent is import_linkedin or import_csv, otherwise null>",
+  "user_updates": { "name": "...", "email": "...", "phone": "...", "location": "...", "website": "..." },
   "reply": "<a brief conversational reply to the user>"
 }
 
-If the intent is an import, the reply should acknowledge that you're processing the import. If it's chat, just respond helpfully about CV topics.`,
+For "update_profile": include only the fields the user wants to change in "user_updates". The reply should confirm what you're updating.
+For imports: the reply should acknowledge that you're processing the import.
+For "chat": just respond helpfully about CV topics. Set "user_updates" to null and "extracted_data" to null.`,
     },
     {
       role: "user",
-      content: state.message,
+      content: buildUserContent(state.message, state.resolved_files),
     },
   ]);
 
@@ -53,8 +130,30 @@ If the intent is an import, the reply should acknowledge that you're processing 
       jsonMatch ? jsonMatch[1] || jsonMatch[0] : content
     );
 
+    const intent = parsed.intent || "chat";
+
+    if (intent === "update_profile" && parsed.user_updates) {
+      const importResult: ImportResult = {
+        education_entries: [],
+        experience_entries: [],
+        project_entries: [],
+        skill_entries: [],
+        social_networks: [],
+        user_updates: parsed.user_updates,
+      };
+
+      return {
+        intent: "update_profile",
+        response: {
+          message: parsed.reply || "I've updated your profile.",
+          action: "update_profile",
+          import_result: importResult,
+        },
+      };
+    }
+
     return {
-      intent: parsed.intent || "chat",
+      intent,
       extracted_data: parsed.extracted_data || undefined,
       response: {
         message: parsed.reply || "",
@@ -160,9 +259,11 @@ function shouldDispatch(state: ChatGraphState): string {
 
 export function createChatGraph() {
   const graph = new StateGraph(ChatStateAnnotation)
+    .addNode("resolveFiles", resolveFiles)
     .addNode("classifyAndExtract", classifyAndExtract)
     .addNode("dispatch", dispatch)
-    .addEdge("__start__", "classifyAndExtract")
+    .addEdge("__start__", "resolveFiles")
+    .addEdge("resolveFiles", "classifyAndExtract")
     .addConditionalEdges("classifyAndExtract", shouldDispatch, [
       "dispatch",
       END,

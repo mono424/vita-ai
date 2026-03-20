@@ -79,6 +79,9 @@ paths:
                 message_id:
                   type: string
                   description: SurrealDB record ID of the placeholder assistant message to update.
+                files:
+                  type: string
+                  description: JSON-encoded array of uploaded file references from the chat_documents bucket. Each entry has path and name fields.
       responses:
         "200":
           description: Chat response
@@ -315,6 +318,9 @@ components:
         message_id:
           type: string
           description: SurrealDB record ID of the placeholder assistant message to update.
+        files:
+          type: string
+          description: JSON-encoded array of uploaded file references from the chat_documents bucket. Each entry has path and name fields.
 
     ChatResponse:
       type: object
@@ -324,7 +330,7 @@ components:
           description: The assistant's reply.
         action:
           type: string
-          enum: [import_linkedin, import_csv, none]
+          enum: [import_linkedin, import_csv, update_profile, none]
           description: What action was taken, if any.
         import_result:
           $ref: "#/components/schemas/ImportResult"

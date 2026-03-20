@@ -1,4 +1,5 @@
 import { Show, For } from 'solid-js';
+import { useDownloadFile } from '@spooky-sync/client-solid';
 import type { ImportSummary } from '../../lib/import-entries';
 
 interface ChatBubbleProps {
@@ -6,6 +7,47 @@ interface ChatBubbleProps {
   content: string;
   writing: boolean;
   import_summary?: ImportSummary | null;
+  files?: Array<{ path: string; name: string }>;
+}
+
+function FileAttachment(props: { file: { path: string; name: string }; isUser: boolean }) {
+  const isImage = () => {
+    const name = props.file.name.toLowerCase();
+    return name.endsWith('.png') || name.endsWith('.jpg') || name.endsWith('.jpeg');
+  };
+
+  // @ts-expect-error — bucket name is valid but generic inference doesn't resolve
+  const result = useDownloadFile('chat_documents', () => props.file.path);
+
+  return (
+    <Show when={result.url()}>
+      <Show
+        when={isImage()}
+        fallback={
+          <a
+            href={result.url()!}
+            download={props.file.name}
+            class={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[11px] transition-colors ${
+              props.isUser
+                ? 'border-zinc-700 dark:border-zinc-300 text-zinc-200 dark:text-zinc-600 hover:bg-white/10 dark:hover:bg-zinc-100'
+                : 'border-zinc-200 dark:border-white/[0.08] text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-white/[0.04]'
+            }`}
+          >
+            <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 16 16" fill="none">
+              <path d="M4 2h5l3 3v9H4V2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+            </svg>
+            <span class="truncate max-w-[140px]">{props.file.name}</span>
+          </a>
+        }
+      >
+        <img
+          src={result.url()!}
+          alt={props.file.name}
+          class="max-w-[240px] rounded-lg border border-zinc-200 dark:border-white/[0.08]"
+        />
+      </Show>
+    </Show>
+  );
 }
 
 export function ChatBubble(props: ChatBubbleProps) {
@@ -41,7 +83,18 @@ export function ChatBubble(props: ChatBubbleProps) {
             </div>
           }
         >
-          <p class="whitespace-pre-wrap">{props.content}</p>
+          <Show when={props.content}>
+            <p class="whitespace-pre-wrap">{props.content}</p>
+          </Show>
+
+          {/* File attachments */}
+          <Show when={props.files && props.files.length > 0}>
+            <div class={`flex flex-wrap gap-2 ${props.content ? 'mt-2' : ''}`}>
+              <For each={props.files}>
+                {(file) => <FileAttachment file={file} isUser={isUser()} />}
+              </For>
+            </div>
+          </Show>
 
           <Show when={props.import_summary && summaryItems().length > 0}>
             <div class={`mt-2 pt-2 ${isUser() ? 'border-t border-white/10' : 'border-t border-zinc-200 dark:border-white/[0.06]'}`}>

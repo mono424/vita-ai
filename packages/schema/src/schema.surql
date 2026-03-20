@@ -302,6 +302,25 @@ VALUE time::now()
 PERMISSIONS FULL;
 
 -- ##################################################################
+-- CHAT FILE TABLE
+-- ##################################################################
+
+DEFINE TABLE chat_file SCHEMAFULL
+PERMISSIONS
+  FOR select WHERE chat_message.owner = $auth.id
+  FOR create, update WHERE $auth.id != NONE
+  FOR delete WHERE chat_message.owner = $auth.id;
+
+DEFINE FIELD chat_message ON TABLE chat_file TYPE record<chat_message>
+PERMISSIONS FULL;
+
+DEFINE FIELD name ON TABLE chat_file TYPE string
+PERMISSIONS FULL;
+
+DEFINE FIELD path ON TABLE chat_file TYPE string
+PERMISSIONS FULL;
+
+-- ##################################################################
 -- CV DOCUMENT TABLE
 -- ##################################################################
 
@@ -325,19 +344,19 @@ PERMISSIONS FULL;
 DEFINE FIELD section_order ON TABLE cv_document TYPE option<array<string>>
 PERMISSIONS FULL;
 
-DEFINE FIELD selected_education ON TABLE cv_document TYPE array<record<education_entry>> DEFAULT []
+DEFINE FIELD selected_education ON TABLE cv_document TYPE option<array<record<education_entry>>>
 PERMISSIONS FULL;
 
-DEFINE FIELD selected_experience ON TABLE cv_document TYPE array<record<experience_entry>> DEFAULT []
+DEFINE FIELD selected_experience ON TABLE cv_document TYPE option<array<record<experience_entry>>>
 PERMISSIONS FULL;
 
-DEFINE FIELD selected_projects ON TABLE cv_document TYPE array<record<project_entry>> DEFAULT []
+DEFINE FIELD selected_projects ON TABLE cv_document TYPE option<array<record<project_entry>>>
 PERMISSIONS FULL;
 
-DEFINE FIELD selected_skills ON TABLE cv_document TYPE array<record<skill_entry>> DEFAULT []
+DEFINE FIELD selected_skills ON TABLE cv_document TYPE option<array<record<skill_entry>>>
 PERMISSIONS FULL;
 
-DEFINE FIELD selected_bullets ON TABLE cv_document TYPE array<record<bullet_entry>> DEFAULT []
+DEFINE FIELD selected_bullets ON TABLE cv_document TYPE option<array<record<bullet_entry>>>
 PERMISSIONS FULL;
 
 DEFINE FIELD include_phone ON TABLE cv_document TYPE option<bool>

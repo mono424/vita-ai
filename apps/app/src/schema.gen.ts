@@ -16,6 +16,16 @@ export const schema = {
       primaryKey: ['id'] as const
     },
     {
+      name: 'chat_file' as const,
+      columns: {
+        id: { type: 'string' as const, recordId: true, optional: false },
+        chat_message: { type: 'string' as const, recordId: true, optional: false },
+        name: { type: 'string' as const, optional: false },
+        path: { type: 'string' as const, optional: false },
+      },
+      primaryKey: ['id'] as const
+    },
+    {
       name: 'chat_message' as const,
       columns: {
         id: { type: 'string' as const, recordId: true, optional: false },
@@ -28,6 +38,7 @@ export const schema = {
         owner: { type: 'string' as const, recordId: true, optional: false },
         role: { type: 'string' as const, optional: true },
         writing: { type: 'boolean' as const, optional: true },
+        chat_files: { type: 'string' as const, optional: true },
       },
       primaryKey: ['id'] as const
     },
@@ -50,11 +61,11 @@ export const schema = {
         owner: { type: 'string' as const, recordId: true, optional: false },
         pdf_url: { type: 'string' as const, optional: true },
         section_order: { type: 'string' as const, optional: true },
-        selected_bullets: { type: 'string' as const, recordId: true, optional: false },
-        selected_education: { type: 'string' as const, recordId: true, optional: false },
-        selected_experience: { type: 'string' as const, recordId: true, optional: false },
-        selected_projects: { type: 'string' as const, recordId: true, optional: false },
-        selected_skills: { type: 'string' as const, recordId: true, optional: false },
+        selected_bullets: { type: 'string' as const, recordId: true, optional: true },
+        selected_education: { type: 'string' as const, recordId: true, optional: true },
+        selected_experience: { type: 'string' as const, recordId: true, optional: true },
+        selected_projects: { type: 'string' as const, recordId: true, optional: true },
+        selected_skills: { type: 'string' as const, recordId: true, optional: true },
         theme: { type: 'string' as const, optional: true },
         title: { type: 'string' as const, optional: false },
       },
@@ -199,6 +210,12 @@ export const schema = {
       cardinality: 'many' as const
     },
     {
+      from: 'chat_file' as const,
+      field: 'chat_message' as const,
+      to: 'chat_message' as const,
+      cardinality: 'one' as const
+    },
+    {
       from: 'chat_message' as const,
       field: 'chat_session' as const,
       to: 'chat_session' as const,
@@ -209,6 +226,12 @@ export const schema = {
       field: 'owner' as const,
       to: 'user' as const,
       cardinality: 'one' as const
+    },
+    {
+      from: 'chat_message' as const,
+      field: 'chat_files' as const,
+      to: 'chat_file' as const,
+      cardinality: 'many' as const
     },
     {
       from: 'chat_session' as const,
@@ -371,6 +394,11 @@ export const schema = {
     account: {"signIn":{"params":{"password":{"type":"string","optional":false},"username":{"type":"string","optional":false}}},"signup":{"params":{"password":{"type":"string","optional":false},"username":{"type":"string","optional":false}}}},
   },
   buckets: [
+    {
+      name: 'chat_documents' as const,
+      maxSize: 15728640,
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'csv', 'pdf', 'txt'] as const,
+    },
   ],
   backends: {
     "agent": {
@@ -378,6 +406,10 @@ export const schema = {
       routes: {
         "/chat": {
           args: {
+            "files": {
+              type: 'string' as const,
+              optional: true as const
+            },
             "message": {
               type: 'string' as const,
               optional: false as const
@@ -687,6 +719,22 @@ VALUE time::now()
 PERMISSIONS FOR select, create, update WHERE true;
 
 -- ##################################################################
+-- CHAT FILE TABLE
+-- ##################################################################
+
+DEFINE TABLE chat_file SCHEMAFULL
+PERMISSIONS FOR select, create, update, delete WHERE true;
+
+DEFINE FIELD chat_message ON TABLE chat_file TYPE option<record<chat_message>>
+PERMISSIONS FOR select, create, update WHERE true;
+
+DEFINE FIELD name ON TABLE chat_file TYPE option<string>
+PERMISSIONS FOR select, create, update WHERE true;
+
+DEFINE FIELD path ON TABLE chat_file TYPE option<string>
+PERMISSIONS FOR select, create, update WHERE true;
+
+-- ##################################################################
 -- CV DOCUMENT TABLE
 -- ##################################################################
 
@@ -706,19 +754,19 @@ PERMISSIONS FOR select, create, update WHERE true;
 DEFINE FIELD section_order ON TABLE cv_document TYPE option<array<string>>
 PERMISSIONS FOR select, create, update WHERE true;
 
-DEFINE FIELD selected_education ON TABLE cv_document TYPE option<array<record<education_entry>>> DEFAULT []
+DEFINE FIELD selected_education ON TABLE cv_document TYPE option<array<record<education_entry>>>
 PERMISSIONS FOR select, create, update WHERE true;
 
-DEFINE FIELD selected_experience ON TABLE cv_document TYPE option<array<record<experience_entry>>> DEFAULT []
+DEFINE FIELD selected_experience ON TABLE cv_document TYPE option<array<record<experience_entry>>>
 PERMISSIONS FOR select, create, update WHERE true;
 
-DEFINE FIELD selected_projects ON TABLE cv_document TYPE option<array<record<project_entry>>> DEFAULT []
+DEFINE FIELD selected_projects ON TABLE cv_document TYPE option<array<record<project_entry>>>
 PERMISSIONS FOR select, create, update WHERE true;
 
-DEFINE FIELD selected_skills ON TABLE cv_document TYPE option<array<record<skill_entry>>> DEFAULT []
+DEFINE FIELD selected_skills ON TABLE cv_document TYPE option<array<record<skill_entry>>>
 PERMISSIONS FOR select, create, update WHERE true;
 
-DEFINE FIELD selected_bullets ON TABLE cv_document TYPE option<array<record<bullet_entry>>> DEFAULT []
+DEFINE FIELD selected_bullets ON TABLE cv_document TYPE option<array<record<bullet_entry>>>
 PERMISSIONS FOR select, create, update WHERE true;
 
 DEFINE FIELD include_phone ON TABLE cv_document TYPE option<bool>
@@ -892,6 +940,7 @@ DEFINE FIELD spooky_rv ON TABLE _spooky_query TYPE int DEFAULT 0 PERMISSIONS FOR
 DEFINE FIELD spooky_rv ON TABLE _spooky_schema TYPE int DEFAULT 0 PERMISSIONS FOR select, create, update WHERE true;
 DEFINE FIELD spooky_rv ON TABLE _spooky_stream_processor_state TYPE int DEFAULT 0 PERMISSIONS FOR select, create, update WHERE true;
 DEFINE FIELD spooky_rv ON TABLE bullet_entry TYPE int DEFAULT 0 PERMISSIONS FOR select, create, update WHERE true;
+DEFINE FIELD spooky_rv ON TABLE chat_file TYPE int DEFAULT 0 PERMISSIONS FOR select, create, update WHERE true;
 DEFINE FIELD spooky_rv ON TABLE chat_message TYPE int DEFAULT 0 PERMISSIONS FOR select, create, update WHERE true;
 DEFINE FIELD spooky_rv ON TABLE chat_session TYPE int DEFAULT 0 PERMISSIONS FOR select, create, update WHERE true;
 DEFINE FIELD spooky_rv ON TABLE cv_document TYPE int DEFAULT 0 PERMISSIONS FOR select, create, update WHERE true;
@@ -918,6 +967,20 @@ THEN {
 
 -- Table: bullet_entry Client Deletion
 DEFINE EVENT OVERWRITE _spooky_bullet_entry_client_delete ON TABLE bullet_entry
+WHEN $event = "DELETE"
+THEN {
+    -- No-op for now.
+};
+
+-- Table: chat_file Client Mutation
+DEFINE EVENT OVERWRITE _spooky_chat_file_client_mutation ON TABLE chat_file
+WHEN $before != $after AND $event != "DELETE"
+THEN {
+    -- No-op for now. Client mutation sync logic moved to DBSP.
+};
+
+-- Table: chat_file Client Deletion
+DEFINE EVENT OVERWRITE _spooky_chat_file_client_delete ON TABLE chat_file
 WHEN $event = "DELETE"
 THEN {
     -- No-op for now.

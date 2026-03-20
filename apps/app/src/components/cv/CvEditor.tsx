@@ -1,11 +1,11 @@
-import { createSignal, createEffect, Show } from 'solid-js';
+import { createSignal, createEffect, Show, onCleanup } from 'solid-js';
 import { schema } from '../../schema.gen';
 import { useDb, useQuery } from '@spooky-sync/client-solid';
 import { useAuth } from '../../auth';
-import { CvItemSelector } from './CvItemSelector';
 import { CvSettingsPanel } from './CvSettingsPanel';
 import { CvPreview } from './CvPreview';
 import { buildYaml } from '../../lib/yaml-builder';
+import { SlidersHorizontal, MoreHorizontal, Pencil, X, Trash2 } from 'lucide-solid';
 
 interface CvEditorProps {
   cvId: string;
@@ -16,6 +16,31 @@ export function CvEditor(props: CvEditorProps) {
   const auth = useAuth();
 
   const [renderError, setRenderError] = createSignal<string | null>(null);
+  const [panelOpen, setPanelOpen] = createSignal(false);
+  const [menuOpen, setMenuOpen] = createSignal(false);
+  const [editingTitle, setEditingTitle] = createSignal(false);
+  let titleInputRef: HTMLInputElement | undefined;
+
+  // Close overflow menu on outside click
+  createEffect(() => {
+    if (!menuOpen()) return;
+    const handler = (e: PointerEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-overflow-menu]')) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('pointerdown', handler);
+    onCleanup(() => document.removeEventListener('pointerdown', handler));
+  });
+
+  // Auto-focus title input
+  createEffect(() => {
+    if (editingTitle() && titleInputRef) {
+      titleInputRef.focus();
+      titleInputRef.select();
+    }
+  });
 
   // Query the CV document
   const cvQuery = useQuery(
@@ -103,6 +128,14 @@ export function CvEditor(props: CvEditorProps) {
     await db.delete('cv_document' as any, props.cvId as any);
   };
 
+  const handleTitleSave = (value: string) => {
+    const trimmed = value.trim();
+    if (trimmed && trimmed !== cv()?.title) {
+      updateCv({ title: trimmed });
+    }
+    setEditingTitle(false);
+  };
+
   const handleRender = async () => {
     const c = cv();
     const user = auth.user();
@@ -133,10 +166,50 @@ export function CvEditor(props: CvEditorProps) {
 
   return (
     <Show when={cv()} fallback={<p class="text-zinc-400 text-sm">Loading CV...</p>}>
-      <div class="space-y-6">
-        <div class="flex items-center justify-between">
-          <h2 class="text-xl font-semibold text-white">{cv()?.title || 'Untitled CV'}</h2>
-          <div class="flex gap-3">
+      <div class="flex flex-col h-full">
+        {/* Header */}
+        <div class="flex items-center justify-between pb-4">
+          <div class="flex items-center gap-2 min-w-0">
+            <Show
+              when={!editingTitle()}
+              fallback={
+                <input
+                  ref={titleInputRef}
+                  value={cv()?.title || ''}
+                  onBlur={(e) => handleTitleSave(e.currentTarget.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleTitleSave(e.currentTarget.value);
+                    if (e.key === 'Escape') setEditingTitle(false);
+                  }}
+                  class="text-xl font-semibold text-white bg-transparent border-b border-zinc-600 outline-none py-0.5 min-w-0"
+                />
+              }
+            >
+              <button
+                onClick={() => setEditingTitle(true)}
+                class="group flex items-center gap-2 min-w-0"
+              >
+                <h2 class="text-xl font-semibold text-white truncate">
+                  {cv()?.title || 'Untitled CV'}
+                </h2>
+                <Pencil class="w-4 h-4 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+              </button>
+            </Show>
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => setPanelOpen(!panelOpen())}
+              class={`p-2 rounded-lg transition-colors ${
+                panelOpen()
+                  ? 'bg-zinc-700 text-white'
+                  : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+              }`}
+              title="Settings"
+            >
+              <SlidersHorizontal class="w-5 h-5" />
+            </button>
+
             <button
               onClick={handleRender}
               disabled={rendering()}
@@ -144,78 +217,79 @@ export function CvEditor(props: CvEditorProps) {
             >
               {rendering() ? 'Rendering...' : 'Render PDF'}
             </button>
-            <button
-              onClick={deleteCv}
-              class="text-red-400 hover:text-red-300 text-sm transition-colors px-3 py-2"
-            >
-              Delete CV
-            </button>
+
+            {/* Overflow menu */}
+            <div class="relative" data-overflow-menu>
+              <button
+                onClick={() => setMenuOpen(!menuOpen())}
+                class="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+              >
+                <MoreHorizontal class="w-5 h-5" />
+              </button>
+              <Show when={menuOpen()}>
+                <div class="absolute right-0 top-full mt-1 bg-zinc-800 border border-white/[0.06] rounded-lg shadow-xl py-1 min-w-[160px] z-50 animate-dropdown-in">
+                  <button
+                    onClick={() => { setMenuOpen(false); deleteCv(); }}
+                    class="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-zinc-700/50 transition-colors"
+                  >
+                    <Trash2 class="w-4 h-4" />
+                    Delete CV
+                  </button>
+                </div>
+              </Show>
+            </div>
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-6">
-          {/* Left: Settings + Selection */}
-          <div class="space-y-6">
-            <div class="bg-zinc-900 border border-white/[0.06] rounded-xl p-5">
+        {/* Body */}
+        <div class="flex-1 flex min-h-0 relative overflow-hidden">
+          {/* Preview — full width */}
+          <div class="flex-1 min-w-0">
+            <CvPreview
+              pdfUrl={cv()?.pdf_url || null}
+              loading={rendering()}
+              error={renderError()}
+              onRender={handleRender}
+            />
+          </div>
+
+          {/* Settings Panel — slide-in from right */}
+          <div
+            class={`absolute top-0 right-0 h-full w-[380px] bg-zinc-900 border-l border-white/[0.06] transition-transform duration-300 z-10 ${
+              panelOpen() ? 'translate-x-0' : 'translate-x-full'
+            }`}
+            style="transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1)"
+          >
+            <div class="flex items-center justify-between px-5 py-3 border-b border-white/[0.06]">
+              <span class="text-sm font-medium text-white">Settings</span>
+              <button
+                onClick={() => setPanelOpen(false)}
+                class="p-1 rounded text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+              >
+                <X class="w-4 h-4" />
+              </button>
+            </div>
+            <div class="h-[calc(100%-49px)] overflow-y-auto">
               <CvSettingsPanel
-                title={cv()?.title || ''}
                 theme={cv()?.theme || 'classic'}
                 sectionOrder={cv()?.section_order || ['education', 'experience', 'projects', 'skills']}
                 includePhone={cv()?.include_phone || false}
-                onTitleChange={(val) => updateCv({ title: val })}
                 onThemeChange={(val) => updateCv({ theme: val })}
                 onSectionOrderChange={(val) => updateCv({ section_order: val })}
                 onIncludePhoneChange={(val) => updateCv({ include_phone: val })}
+                education={education()}
+                experience={experience()}
+                projects={projects()}
+                skills={skills()}
+                bullets={bullets()}
+                selectedEducation={selectedIds('selected_education')}
+                selectedExperience={selectedIds('selected_experience')}
+                selectedProjects={selectedIds('selected_projects')}
+                selectedSkills={selectedIds('selected_skills')}
+                selectedBullets={selectedIds('selected_bullets')}
+                onToggleItem={toggleItem}
               />
             </div>
-
-            <div class="bg-zinc-900 border border-white/[0.06] rounded-xl p-5 space-y-5">
-              <h3 class="text-base font-medium text-white">Select Items</h3>
-              <CvItemSelector
-                title="Education"
-                items={education()}
-                selectedIds={selectedIds('selected_education')}
-                onToggle={(id) => toggleItem('selected_education', id)}
-                getLabel={(e) => e.institution}
-                getSubLabel={(e) => [e.degree, e.area].filter(Boolean).join(' in ')}
-              />
-              <CvItemSelector
-                title="Experience"
-                items={experience()}
-                selectedIds={selectedIds('selected_experience')}
-                onToggle={(id) => toggleItem('selected_experience', id)}
-                getLabel={(e) => e.company}
-                getSubLabel={(e) => e.position}
-              />
-              <CvItemSelector
-                title="Projects"
-                items={projects()}
-                selectedIds={selectedIds('selected_projects')}
-                onToggle={(id) => toggleItem('selected_projects', id)}
-                getLabel={(e) => e.name}
-              />
-              <CvItemSelector
-                title="Skills"
-                items={skills()}
-                selectedIds={selectedIds('selected_skills')}
-                onToggle={(id) => toggleItem('selected_skills', id)}
-                getLabel={(e) => e.label}
-                getSubLabel={(e) => e.details}
-              />
-              <CvItemSelector
-                title="Custom Sections"
-                items={bullets()}
-                selectedIds={selectedIds('selected_bullets')}
-                onToggle={(id) => toggleItem('selected_bullets', id)}
-                getLabel={(e) => e.bullet}
-                getSubLabel={(e) => e.section_name}
-              />
-            </div>
-          </div>
-
-          {/* Right: Preview */}
-          <div class="min-h-[600px]">
-            <CvPreview pdfUrl={cv()?.pdf_url || null} loading={rendering()} error={renderError()} />
           </div>
         </div>
       </div>

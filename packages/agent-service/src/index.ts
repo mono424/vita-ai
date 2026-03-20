@@ -2,7 +2,7 @@ import express from "express";
 import { createLinkedInImportGraph } from "./graphs/linkedin-import.js";
 import { createCSVImportGraph } from "./graphs/csv-import.js";
 import { createChatGraph } from "./graphs/chat.js";
-import { updateChatMessage } from "./db.js";
+import { updateChatMessage, getChatMessage } from "./db.js";
 
 const app = express();
 app.use(express.json({ limit: "10mb" }));
@@ -65,7 +65,7 @@ app.post("/import/csv", async (req, res) => {
 });
 
 app.post("/chat", async (req, res) => {
-  const { message, owner_id, session, message_id } = req.body;
+  const { message, owner_id, session, message_id, files } = req.body;
 
   if (!message || !owner_id || !session || !message_id) {
     res.status(422).json({ detail: "message, owner_id, session, and message_id are required" });
@@ -73,9 +73,25 @@ app.post("/chat", async (req, res) => {
   }
 
   try {
+    // Guard: skip if this message was already processed (retry scenario)
+    const existing = await getChatMessage(message_id);
+    if (existing && (existing.writing === false || existing.import_result || existing.import_summary)) {
+      console.log(`Message ${message_id} already processed, skipping retry`);
+      res.json({ success: true });
+      return;
+    }
+
+    let parsedFiles;
+    if (files) {
+      try {
+        parsedFiles = typeof files === 'string' ? JSON.parse(files) : files;
+      } catch { parsedFiles = undefined; }
+    }
+
     const result = await chatGraph.invoke({
       message,
       owner_id,
+      files: parsedFiles,
     });
 
     if (result.error) {

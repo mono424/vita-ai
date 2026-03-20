@@ -1,5 +1,5 @@
 import { createEffect, createSignal, For, Show, onMount } from 'solid-js';
-import { useDb, useQuery } from '@spooky-sync/client-solid';
+import { useDb, useQuery, useFileUpload } from '@spooky-sync/client-solid';
 import { schema } from '../../schema.gen';
 import { useAuth } from '../../auth';
 import { importEntries, type ImportSummary } from '../../lib/import-entries';
@@ -13,6 +13,8 @@ interface ChatPanelProps {
 export function ChatPanel(props: ChatPanelProps) {
   const db = useDb<typeof schema>();
   const auth = useAuth();
+  // @ts-expect-error — bucket name is valid but generic inference doesn't resolve
+  const fileUpload = useFileUpload('chat_documents');
   let messagesEndRef: HTMLDivElement | undefined;
 
   const [activeSessionId, setActiveSessionId] = createSignal<string | null>(null);
@@ -82,6 +84,14 @@ export function ChatPanel(props: ChatPanelProps) {
 
   const isWriting = () => messages().some((m: any) => m.writing);
 
+  // Query chat files for the active session's messages
+  const chatFilesQuery = useQuery(
+    () => db.query('chat_file' as any).build() as any,
+    { enabled: () => auth.userId() !== null }
+  );
+
+  const chatFiles = () => (chatFilesQuery.data() as any[]) || [];
+
   // Query agent jobs for chat
   const jobQuery = useQuery(
     () => db.query('jobs_agent' as any).where({ assigned_to: auth.userId()! } as any).build() as any,
@@ -145,7 +155,9 @@ export function ChatPanel(props: ChatPanelProps) {
   });
 
   // Process import_result on new assistant messages written by the agent service
-  const processedImports = new Set<string>();
+  // Uses import_summary (persisted in DB) as the durable guard, plus an in-memory
+  // set to prevent concurrent processing within the same page session.
+  const importingNow = new Set<string>();
 
   createEffect(() => {
     const allMessages = messages();
@@ -153,8 +165,8 @@ export function ChatPanel(props: ChatPanelProps) {
     if (!userId) return;
 
     for (const msg of allMessages) {
-      if (msg.role === 'assistant' && msg.import_result && !processedImports.has(msg.id)) {
-        processedImports.add(msg.id);
+      if (msg.role === 'assistant' && msg.import_result && !msg.import_summary && !importingNow.has(msg.id)) {
+        importingNow.add(msg.id);
         importEntries(db, userId, msg.import_result)
           .then((summary: ImportSummary) => {
             db.update('chat_message' as any, msg.id as any, {
@@ -166,6 +178,9 @@ export function ChatPanel(props: ChatPanelProps) {
             db.update('chat_message' as any, msg.id as any, {
               import_result: null,
             } as any);
+          })
+          .finally(() => {
+            importingNow.delete(msg.id);
           });
       }
     }
@@ -178,7 +193,7 @@ export function ChatPanel(props: ChatPanelProps) {
     }, 50);
   });
 
-  const handleSend = async (content: string) => {
+  const handleSend = async (content: string, files: File[] = []) => {
     const userId = auth.userId();
     if (!userId) return;
 
@@ -198,6 +213,19 @@ export function ChatPanel(props: ChatPanelProps) {
       }
     }
 
+    // Upload files to bucket
+    const fileRefs: Array<{ path: string; name: string }> = [];
+    for (const file of files) {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const path = `${Date.now()}_${safeName}`;
+      try {
+        await fileUpload.upload(path, file);
+        fileRefs.push({ path, name: file.name });
+      } catch (err) {
+        console.error('Failed to upload file:', file.name, err);
+      }
+    }
+
     const userMsgId = `chat_message:${crypto.randomUUID().replace(/-/g, '')}`;
     await db.create(userMsgId as any, {
       owner: userId,
@@ -206,6 +234,15 @@ export function ChatPanel(props: ChatPanelProps) {
       writing: false,
       chat_session: sessionId,
     } as any);
+
+    // Create chat_file records for each uploaded file
+    for (const ref of fileRefs) {
+      await db.create('chat_file' as any, {
+        chat_message: userMsgId,
+        name: ref.name,
+        path: ref.path,
+      } as any);
+    }
 
     const assistantMsgId = `chat_message:${crypto.randomUUID().replace(/-/g, '')}`;
     await db.create(assistantMsgId as any, {
@@ -222,6 +259,7 @@ export function ChatPanel(props: ChatPanelProps) {
         owner_id: userId,
         session: sessionId,
         message_id: assistantMsgId,
+        ...(fileRefs.length > 0 ? { files: JSON.stringify(fileRefs) } : {}),
       } as any, {
         assignedTo: userId,
       });
@@ -327,14 +365,18 @@ export function ChatPanel(props: ChatPanelProps) {
             </div>
           </Show>
           <For each={messages()}>
-            {(msg: any) => (
-              <ChatBubble
-                role={msg.role}
-                content={msg.content || ''}
-                writing={msg.writing || false}
-                import_summary={msg.import_summary}
-              />
-            )}
+            {(msg: any) => {
+              const files = () => chatFiles().filter((f: any) => String(f.chat_message) === String(msg.id));
+              return (
+                <ChatBubble
+                  role={msg.role}
+                  content={msg.content || ''}
+                  writing={msg.writing || false}
+                  import_summary={msg.import_summary}
+                  files={files()}
+                />
+              );
+            }}
           </For>
           <div ref={messagesEndRef} />
         </div>

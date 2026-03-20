@@ -1,5 +1,9 @@
 mode: singlenode
 schema: packages/schema
+version: 0.0.1-canary.27
+surrealdb:
+  namespace: vitaai
+  database: main
 backends:
   render:
     type: http
@@ -27,3 +31,5 @@ backends:
 clientTypes:
   - format: typescript
     output: apps/app/src/schema.gen.ts
+buckets:
+  - ./packages/schema/src/buckets/chat_documents.surql

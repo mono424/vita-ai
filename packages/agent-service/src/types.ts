@@ -62,24 +62,38 @@ export type SocialNetwork = z.infer<typeof SocialNetworkSchema>;
 export type UserUpdates = z.infer<typeof UserUpdatesSchema>;
 export type ImportResult = z.infer<typeof ImportResultSchema>;
 
+export interface ChatFile {
+  path: string;
+  name: string;
+}
+
+export interface ResolvedFile {
+  name: string;
+  mime: string;
+  content: string;
+}
+
 export interface ChatRequest {
   message: string;
   owner_id: string;
+  files?: ChatFile[];
 }
 
 export interface ChatResponse {
   message: string;
-  action: 'import_linkedin' | 'import_csv' | 'none';
+  action: 'import_linkedin' | 'import_csv' | 'update_profile' | 'none';
   import_result?: ImportResult;
 }
 
 export interface ChatGraphState {
   message: string;
   owner_id: string;
-  intent?: 'chat' | 'import_linkedin' | 'import_csv';
+  intent?: 'chat' | 'import_linkedin' | 'import_csv' | 'update_profile';
   extracted_data?: string;
   response?: ChatResponse;
   error?: string;
+  files?: ChatFile[];
+  resolved_files?: ResolvedFile[];
 }
 
 export interface GraphState {

@@ -19,6 +19,42 @@ async function getDb(): Promise<Surreal> {
   return db;
 }
 
+const MIME_TYPES: Record<string, string> = {
+  '.txt': 'text/plain',
+  '.csv': 'text/csv',
+  '.pdf': 'application/pdf',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+};
+
+export function getMimeType(fileName: string): string {
+  const ext = fileName.slice(fileName.lastIndexOf('.')).toLowerCase();
+  return MIME_TYPES[ext] || 'application/octet-stream';
+}
+
+export function isImageFile(fileName: string): boolean {
+  const mime = getMimeType(fileName);
+  return mime.startsWith('image/');
+}
+
+export async function readBucketFile(filePath: string): Promise<Uint8Array | null> {
+  const surreal = await getDb();
+  const [result] = await surreal.query<[Uint8Array | null]>(
+    `RETURN f"chat_documents:/${filePath}".get();`
+  );
+  return result ?? null;
+}
+
+export async function getChatMessage(messageId: string): Promise<Record<string, any> | null> {
+  const surreal = await getDb();
+  const [result] = await surreal.query<[Record<string, any>[]]>(
+    `SELECT * FROM <record> $msg_id`,
+    { msg_id: messageId },
+  );
+  return result?.[0] ?? null;
+}
+
 export async function updateChatMessage(
   messageId: string,
   content: string,

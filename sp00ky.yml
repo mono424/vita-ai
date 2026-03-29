@@ -1,9 +1,13 @@
+slug: vita-ai
 mode: singlenode
 schema: packages/schema
 version: 0.0.1-canary.27
 surrealdb:
   namespace: vitaai
   database: main
+frontend:
+  dockerfile: ./apps/app/Dockerfile
+  port: 3000
 backends:
   render:
     type: http

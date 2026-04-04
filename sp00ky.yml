@@ -1,13 +1,18 @@
 slug: vita-ai
 mode: singlenode
+deployment:
+  ssp_count: 2
 schema: packages/schema
-version: 0.0.1-canary.27
+version: 0.0.1-canary.29
 surrealdb:
   namespace: vitaai
   database: main
 frontend:
   dockerfile: ./apps/app/Dockerfile
-  port: 3000
+  context: .
+  port: 80
+  env:
+    - VITE_DB_ENDPOINT=wss://vita-ai.db.stg.spky.cloud/rpc
 backends:
   render:
     type: http
@@ -20,6 +25,10 @@ backends:
     dev:
       type: npm
       script: dev:api
+    deploy:
+      dockerfile: ./packages/render-api/Dockerfile
+      context: ./packages/render-api
+      port: 8000
   agent:
     type: http
     spec: ./packages/agent-service/openapi.yaml
@@ -31,6 +40,10 @@ backends:
     dev:
       type: npm
       script: dev:agent
+      env-file: agent.env.local
+    deploy:
+      dockerfile: ./packages/agent-service/Dockerfile
+      port: 8767
       env-file: agent.env.local
 clientTypes:
   - format: typescript

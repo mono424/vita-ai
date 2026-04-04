@@ -14,6 +14,9 @@ RUN pnpm install --frozen-lockfile
 
 COPY apps/app/ apps/app/
 
+ARG VITE_DB_ENDPOINT
+ENV VITE_DB_ENDPOINT=$VITE_DB_ENDPOINT
+
 RUN pnpm --filter @cv.khadim.io/app build
 
 FROM nginx:alpine

@@ -1,5 +1,5 @@
 import { createSignal, Show } from 'solid-js';
-import { SpookyProvider } from '@spooky-sync/client-solid';
+import { Sp00kyProvider } from '@spooky-sync/client-solid';
 import { AuthProvider, useAuth } from './auth';
 import { dbConfig } from './db';
 import { AppShell } from './components/layout/AppShell';
@@ -97,7 +97,7 @@ function AuthForm() {
 
 export default function App() {
   return (
-    <SpookyProvider
+    <Sp00kyProvider
       config={dbConfig}
       fallback={
         <div class="min-h-screen bg-zinc-950 flex items-center justify-center">
@@ -111,6 +111,6 @@ export default function App() {
           <AppShell />
         </Show>
       </AuthProvider>
-    </SpookyProvider>
+    </Sp00kyProvider>
   );
 }

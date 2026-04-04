@@ -13,13 +13,13 @@
     "migrate:status": "spooky migrate status --url http://localhost:8666"
   },
   "devDependencies": {
-    "@spooky-sync/cli": "0.0.1-canary.27"
+    "@spooky-sync/cli": "0.0.1-canary.29"
   },
   "pnpm": {
     "overrides": {
-      "@spooky-sync/query-builder": "0.0.1-canary.27",
-      "@spooky-sync/core": "0.0.1-canary.27",
-      "@spooky-sync/ssp-wasm": "0.0.1-canary.27"
+      "@spooky-sync/query-builder": "0.0.1-canary.29",
+      "@spooky-sync/core": "0.0.1-canary.29",
+      "@spooky-sync/ssp-wasm": "0.0.1-canary.29"
     }
   }
 }

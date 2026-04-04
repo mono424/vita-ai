@@ -9,7 +9,7 @@ export const dbConfig: SyncedDbConfig<typeof schema> = {
   database: {
     namespace: "vitaai",
     database: "main",
-    endpoint: "ws://localhost:8666/rpc",
+    endpoint: import.meta.env.VITE_DB_ENDPOINT || "ws://localhost:8666/rpc",
     store: "memory",
   },
 };

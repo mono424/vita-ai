@@ -3,7 +3,7 @@ mode: singlenode
 deployment:
   ssp_count: 2
 schema: packages/schema
-version: 0.0.1-canary.29
+version: 0.0.1-canary.30
 surrealdb:
   namespace: vitaai
   database: main

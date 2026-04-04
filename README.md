@@ -1,3 +1,3 @@
-![Spooky Deploy](https://api.sp00ky.cloud/v1/projects/vita-ai/badge.svg)
+![Spooky Deploy](https://api-stg.sp00ky.cloud/v1/badge/vita-ai.svg)
 
 # Vita AI

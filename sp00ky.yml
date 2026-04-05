@@ -29,6 +29,7 @@ backends:
       dockerfile: ./packages/render-api/Dockerfile
       context: ./packages/render-api
       port: 8000
+      healthcheck: /health
   agent:
     type: http
     spec: ./packages/agent-service/openapi.yaml
@@ -43,8 +44,10 @@ backends:
       env-file: agent.env.local
     deploy:
       dockerfile: ./packages/agent-service/Dockerfile
+      context: ./packages/agent-service
       port: 8767
       env-file: agent.env.local
+      healthcheck: /health
 clientTypes:
   - format: typescript
     output: apps/app/src/schema.gen.ts

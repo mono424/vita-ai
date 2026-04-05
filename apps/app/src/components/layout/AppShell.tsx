@@ -9,6 +9,7 @@ export function AppShell() {
   const auth = useAuth();
   const [activeView, setActiveView] = createSignal('profile');
   const [chatOpen, setChatOpen] = createSignal(false);
+  const [sidebarOpen, setSidebarOpen] = createSignal(false);
 
   const cvId = () => {
     const view = activeView();
@@ -18,11 +19,21 @@ export function AppShell() {
   return (
     <div class="h-screen bg-zinc-950 flex flex-col">
       <header class="border-b border-white/[0.06] h-14 shrink-0">
-        <div class="px-6 h-full flex items-center justify-between">
-          <h1 class="text-lg font-semibold text-white tracking-tight">cv.khadim.io</h1>
+        <div class="px-4 md:px-6 h-full flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              class="md:hidden p-1.5 -ml-1.5 text-zinc-400 hover:text-white transition-colors"
+            >
+              <svg class="w-5 h-5" viewBox="0 0 20 20" fill="none">
+                <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+            </button>
+            <h1 class="text-lg font-semibold text-white tracking-tight">cv.khadim.io</h1>
+          </div>
           <div class="flex items-center gap-4">
             <Show when={auth.user()}>
-              <span class="text-sm text-zinc-400">{auth.user()?.username}</span>
+              <span class="text-sm text-zinc-400 hidden sm:inline">{auth.user()?.username}</span>
             </Show>
             <button
               onClick={auth.signOut}
@@ -35,17 +46,22 @@ export function AppShell() {
       </header>
 
       <div class="flex flex-1 min-h-0">
-        <Sidebar activeView={activeView()} onNavigate={setActiveView} />
+        <Sidebar
+          activeView={activeView()}
+          onNavigate={setActiveView}
+          open={sidebarOpen()}
+          onClose={() => setSidebarOpen(false)}
+        />
         <main class="flex-1 overflow-y-auto">
           <Show when={activeView() === 'profile'}>
-            <div class="p-8">
+            <div class="p-4 md:p-8">
               <div class="max-w-4xl mx-auto">
                 <ProfileEditor />
               </div>
             </div>
           </Show>
           <Show when={cvId()}>
-            <div class="p-6 h-full">
+            <div class="p-3 md:p-6 h-full">
               <CvEditor cvId={cvId()!} />
             </div>
           </Show>
@@ -61,7 +77,7 @@ export function AppShell() {
       <Show when={!chatOpen()}>
         <button
           onClick={() => setChatOpen(true)}
-          class="fixed bottom-6 right-6 z-50 animate-fab-in flex items-center gap-2 bg-white text-zinc-900 pl-4 pr-5 py-3 rounded-full shadow-[0_0_0_1px_rgba(0,0,0,0.08),0_4px_16px_rgba(0,0,0,0.12),0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_0_0_1px_rgba(0,0,0,0.08),0_8px_30px_rgba(0,0,0,0.16),0_16px_50px_rgba(0,0,0,0.1)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+          class="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50 animate-fab-in flex items-center gap-2 bg-white text-zinc-900 pl-4 pr-5 py-3 rounded-full shadow-[0_0_0_1px_rgba(0,0,0,0.08),0_4px_16px_rgba(0,0,0,0.12),0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_0_0_1px_rgba(0,0,0,0.08),0_8px_30px_rgba(0,0,0,0.16),0_16px_50px_rgba(0,0,0,0.1)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
         >
           <svg class="w-4 h-4" viewBox="0 0 16 16" fill="none">
             <path d="M2 3.5C2 2.67 2.67 2 3.5 2h9c.83 0 1.5.67 1.5 1.5v7c0 .83-.67 1.5-1.5 1.5H6l-2.5 2.5V12H3.5C2.67 12 2 11.33 2 10.5v-7z" fill="currentColor" />

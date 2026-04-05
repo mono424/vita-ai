@@ -278,10 +278,9 @@ export function ChatPanel(props: ChatPanelProps) {
   };
 
   return (
-    <div class="fixed bottom-6 right-6 z-50 flex flex-col w-[400px] h-[600px] animate-chat-in"
-      style="max-height: calc(100vh - 48px)"
+    <div class="fixed inset-0 md:inset-auto md:bottom-6 md:right-6 z-50 flex flex-col w-full md:w-[400px] h-full md:h-[600px] md:max-h-[calc(100vh-48px)] animate-chat-in"
     >
-      <div class="flex flex-col h-full bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-white/10 shadow-[0_16px_60px_-12px_rgba(0,0,0,0.25),0_8px_20px_-8px_rgba(0,0,0,0.15)] overflow-hidden">
+      <div class="flex flex-col h-full bg-white dark:bg-zinc-900 md:rounded-2xl md:border border-zinc-200 dark:border-white/10 md:shadow-[0_16px_60px_-12px_rgba(0,0,0,0.25),0_8px_20px_-8px_rgba(0,0,0,0.15)] overflow-hidden">
         {/* Header */}
         <div class="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-white/[0.06]">
           <div class="flex items-center gap-2 min-w-0 flex-1">

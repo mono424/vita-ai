@@ -107,7 +107,7 @@ export function PersonalInfoForm() {
   return (
     <div class="space-y-4">
       <h3 class="text-base font-medium text-white">Personal Information</h3>
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField label="Full Name">
           <Input
             value={name()}
@@ -149,7 +149,7 @@ export function PersonalInfoForm() {
             placeholder="City, Country"
           />
         </FormField>
-        <div class="col-span-2">
+        <div class="md:col-span-2">
           <FormField label="Website">
             <Input
               value={website()}

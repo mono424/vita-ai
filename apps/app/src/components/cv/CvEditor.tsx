@@ -168,7 +168,7 @@ export function CvEditor(props: CvEditorProps) {
     <Show when={cv()} fallback={<p class="text-zinc-400 text-sm">Loading CV...</p>}>
       <div class="flex flex-col h-full">
         {/* Header */}
-        <div class="flex items-center justify-between pb-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-4">
           <div class="flex items-center gap-2 min-w-0">
             <Show
               when={!editingTitle()}
@@ -255,7 +255,7 @@ export function CvEditor(props: CvEditorProps) {
 
           {/* Settings Panel — slide-in from right */}
           <div
-            class={`absolute top-0 right-0 h-full w-[380px] bg-zinc-900 border-l border-white/[0.06] transition-transform duration-300 z-10 ${
+            class={`absolute top-0 right-0 h-full w-full md:w-[380px] bg-zinc-900 border-l border-white/[0.06] transition-transform duration-300 z-10 ${
               panelOpen() ? 'translate-x-0' : 'translate-x-full'
             }`}
             style="transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1)"

@@ -12,7 +12,7 @@ frontend:
   context: .
   port: 80
   env:
-    - VITE_DB_ENDPOINT=wss://vita-ai.db.stg.spky.cloud/rpc
+    - VITE_DB_ENDPOINT=wss://vita-ai-db.stg.spky.cloud/rpc
 backends:
   render:
     type: http

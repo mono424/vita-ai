@@ -7,6 +7,11 @@ from .renderer import render_yaml_to_pdf
 app = FastAPI()
 
 
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+
 class RenderRequest(BaseModel):
     yaml_content: str
 

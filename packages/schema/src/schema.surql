@@ -285,6 +285,9 @@ PERMISSIONS FULL;
 DEFINE FIELD writing ON TABLE chat_message TYPE option<bool>
 PERMISSIONS FULL;
 
+DEFINE FIELD failed ON TABLE chat_message TYPE option<bool>
+PERMISSIONS FULL;
+
 DEFINE FIELD job_id ON TABLE chat_message TYPE option<string>
 PERMISSIONS FULL;
 

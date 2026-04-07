@@ -7,6 +7,10 @@ import { updateChatMessage, getChatMessage } from "./db.js";
 const app = express();
 app.use(express.json({ limit: "10mb" }));
 
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok" });
+});
+
 const linkedinGraph = createLinkedInImportGraph();
 const csvGraph = createCSVImportGraph();
 const chatGraph = createChatGraph();
@@ -116,6 +120,6 @@ app.post("/chat", async (req, res) => {
 });
 
 const port = process.env.PORT || 8767;
-app.listen(port, () => {
-  console.log(`Agent service running on http://localhost:${port}`);
+app.listen(Number(port), '0.0.0.0', () => {
+  console.log(`Agent service running on http://0.0.0.0:${port}`);
 });

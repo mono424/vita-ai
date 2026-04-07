@@ -149,6 +149,7 @@ export function ChatPanel(props: ChatPanelProps) {
         db.update('chat_message' as any, assistantMsg.id as any, {
           content: lastError?.message || 'Sorry, something went wrong. Please try again.',
           writing: false,
+          failed: true,
         } as any);
       }
     }
@@ -268,6 +269,59 @@ export function ChatPanel(props: ChatPanelProps) {
       await db.update('chat_message' as any, assistantMsgId as any, {
         content: err.message || 'Failed to send message. Please try again.',
         writing: false,
+        failed: true,
+      } as any);
+    }
+  };
+
+  const handleRetry = async (failedAssistantMsgId: string) => {
+    const userId = auth.userId();
+    if (!userId) return;
+
+    const allMessages = messages();
+    const failedIndex = allMessages.findIndex((m: any) => m.id === failedAssistantMsgId);
+    if (failedIndex < 0) return;
+
+    // Find the preceding user message
+    let userMsg: any = null;
+    for (let i = failedIndex - 1; i >= 0; i--) {
+      if (allMessages[i].role === 'user') {
+        userMsg = allMessages[i];
+        break;
+      }
+    }
+    if (!userMsg) return;
+
+    const sessionId = activeSessionId();
+    if (!sessionId) return;
+
+    // Gather file refs from the original user message
+    const userFiles = chatFiles().filter((f: any) => String(f.chat_message) === String(userMsg.id));
+    const fileRefs = userFiles.map((f: any) => ({ path: f.path, name: f.name }));
+
+    // Reset the assistant message to writing state
+    await db.update('chat_message' as any, failedAssistantMsgId as any, {
+      content: '',
+      writing: true,
+      failed: false,
+    } as any);
+
+    // Re-invoke the agent
+    try {
+      await db.run('agent' as any, '/chat' as any, {
+        message: userMsg.content,
+        owner_id: userId,
+        session: sessionId,
+        message_id: failedAssistantMsgId,
+        ...(fileRefs.length > 0 ? { files: JSON.stringify(fileRefs) } : {}),
+      } as any, {
+        assignedTo: userId,
+      });
+    } catch (err: any) {
+      await db.update('chat_message' as any, failedAssistantMsgId as any, {
+        content: err.message || 'Failed to send message. Please try again.',
+        writing: false,
+        failed: true,
       } as any);
     }
   };
@@ -371,8 +425,11 @@ export function ChatPanel(props: ChatPanelProps) {
                   role={msg.role}
                   content={msg.content || ''}
                   writing={msg.writing || false}
+                  failed={msg.failed || false}
+                  messageId={msg.id}
                   import_summary={msg.import_summary}
                   files={files()}
+                  onRetry={handleRetry}
                 />
               );
             }}

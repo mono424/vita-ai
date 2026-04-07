@@ -6,8 +6,11 @@ interface ChatBubbleProps {
   role: 'user' | 'assistant';
   content: string;
   writing: boolean;
+  failed?: boolean;
+  messageId?: string;
   import_summary?: ImportSummary | null;
   files?: Array<{ path: string; name: string }>;
+  onRetry?: (messageId: string) => void;
 }
 
 function FileAttachment(props: { file: { path: string; name: string }; isUser: boolean }) {
@@ -70,7 +73,9 @@ export function ChatBubble(props: ChatBubbleProps) {
         class={`max-w-[85%] text-[13px] leading-[1.6] ${
           isUser()
             ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-[18px] rounded-br-[4px] px-3.5 py-2.5'
-            : 'bg-zinc-100 dark:bg-white/[0.06] text-zinc-800 dark:text-zinc-200 rounded-[18px] rounded-bl-[4px] px-3.5 py-2.5'
+            : props.failed
+              ? 'bg-red-50 dark:bg-red-500/[0.06] text-zinc-500 dark:text-zinc-400 rounded-[18px] rounded-bl-[4px] px-3.5 py-2.5'
+              : 'bg-zinc-100 dark:bg-white/[0.06] text-zinc-800 dark:text-zinc-200 rounded-[18px] rounded-bl-[4px] px-3.5 py-2.5'
         }`}
       >
         <Show
@@ -85,6 +90,38 @@ export function ChatBubble(props: ChatBubbleProps) {
         >
           <Show when={props.content}>
             <p class="whitespace-pre-wrap">{props.content}</p>
+          </Show>
+
+          {/* Retry button for failed messages */}
+          <Show when={props.failed && props.messageId && props.onRetry}>
+            <div class="flex items-center gap-1.5 mt-2 pt-2 border-t border-red-100 dark:border-red-500/10">
+              <button
+                onClick={() => props.onRetry?.(props.messageId!)}
+                class="flex items-center gap-1 text-[11px] font-medium text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors group"
+              >
+                <svg
+                  class="w-3 h-3 transition-transform group-hover:rotate-45"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                >
+                  <path
+                    d="M2.5 8a5.5 5.5 0 019.3-3.95l.7.7M13.5 8a5.5 5.5 0 01-9.3 3.95l-.7-.7"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M13 1.5v3.5h-3.5M3 14.5V11h3.5"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                <span>Retry</span>
+              </button>
+            </div>
           </Show>
 
           {/* File attachments */}

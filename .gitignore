@@ -15,10 +15,10 @@ __pycache__/
 *.egg-info/
 
 # Spooky
-.spooky/ssp_data/
-.spooky/*.gen.surql
-.spooky/*.surli
-.spooky/surrealdb_data
+.sp00ky/ssp_data/
+.sp00ky/*.gen.surql
+.sp00ky/*.surli
+.sp00ky/surrealdb_data
 
 # Environment files
 *.env.local

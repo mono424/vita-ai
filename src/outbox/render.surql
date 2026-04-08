@@ -6,7 +6,7 @@ DEFINE TABLE jobs_render SCHEMAFULL
 PERMISSIONS
   FOR select, create, update, delete WHERE true;
 
-DEFINE FIELD assigned_to ON TABLE jobs_render TYPE record
+DEFINE FIELD assigned_to ON TABLE jobs_render TYPE record<cv_document>
 PERMISSIONS
   FOR create, select WHERE true
   FOR update WHERE false;

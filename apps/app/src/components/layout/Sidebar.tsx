@@ -1,7 +1,7 @@
-import { For, Show } from 'solid-js';
-import { schema } from '../../schema.gen';
-import { useDb, useQuery } from '@spooky-sync/client-solid';
-import { useAuth } from '../../auth';
+import { For, Show } from "solid-js";
+import { schema } from "../../schema.gen";
+import { useDb, useQuery } from "@spooky-sync/client-solid";
+import { useAuth } from "../../auth";
 
 interface SidebarProps {
   activeView: string;
@@ -15,27 +15,28 @@ export function Sidebar(props: SidebarProps) {
   const auth = useAuth();
 
   const cvsQuery = useQuery(
-    () => db.query('cv_document').where({ owner: auth.userId()! }).build(),
-    { enabled: () => auth.userId() !== null }
+    () => db.query("cv_document").where({ owner: auth.userId()! }).build(),
+    { enabled: () => auth.userId() !== null },
   );
-
-  const cvs = () => (cvsQuery.data() as any[]) || [];
 
   const createCv = async () => {
     try {
-      const id = `cv_document:${crypto.randomUUID().replace(/-/g, '')}`;
-      const result = await db.create(id as any, {
-        owner: auth.userId()!,
-        title: 'Untitled CV',
-        theme: 'classic',
-        section_order: ['education', 'experience', 'projects', 'skills'],
-      } as any);
+      const id = `cv_document:${crypto.randomUUID().replace(/-/g, "")}`;
+      const result = await db.create(
+        id as any,
+        {
+          owner: auth.userId()!,
+          title: "Untitled CV",
+          theme: "classic",
+          section_order: ["education", "experience", "projects", "skills"],
+        } as any,
+      );
       if (result) {
         props.onNavigate(`cv:${(result as any).id}`);
         props.onClose?.();
       }
     } catch (err) {
-      console.error('Failed to create CV:', err);
+      console.error("Failed to create CV:", err);
     }
   };
 
@@ -47,28 +48,30 @@ export function Sidebar(props: SidebarProps) {
   const sidebarContent = (
     <nav class="p-4 space-y-1">
       <button
-        onClick={() => handleNavigate('profile')}
+        onClick={() => handleNavigate("profile")}
         class={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-          props.activeView === 'profile'
-            ? 'bg-white/[0.07] text-white font-medium'
-            : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04]'
+          props.activeView === "profile"
+            ? "bg-white/[0.07] text-white font-medium"
+            : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04]"
         }`}
       >
         Profile
       </button>
 
       <div class="pt-4 pb-2 px-3">
-        <span class="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">CVs</span>
+        <span class="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">
+          CVs
+        </span>
       </div>
 
-      <For each={cvs()}>
+      <For each={cvsQuery.data()}>
         {(cv) => (
           <button
             onClick={() => handleNavigate(`cv:${cv.id}`)}
             class={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors truncate ${
               props.activeView === `cv:${cv.id}`
-                ? 'bg-white/[0.07] text-white font-medium'
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04]'
+                ? "bg-white/[0.07] text-white font-medium"
+                : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04]"
             }`}
           >
             {cv.title}

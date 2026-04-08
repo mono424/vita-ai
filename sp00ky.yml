@@ -18,7 +18,7 @@ backends:
   render:
     type: http
     spec: ./packages/render-api/openapi.yaml
-    baseUrl: http://host.docker.internal:8000
+    baseUrl: http://host.docker.internal:8765
     method:
       type: outbox
       schema: ./src/outbox/render.surql
@@ -29,7 +29,7 @@ backends:
     deploy:
       dockerfile: ./packages/render-api/Dockerfile
       context: ./packages/render-api
-      port: 8000
+      port: 8765
       healthcheck: /health
       timeout: 120
       timeout_overridable: false

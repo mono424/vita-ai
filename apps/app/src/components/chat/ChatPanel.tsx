@@ -32,9 +32,9 @@ export function ChatPanel(props: ChatPanelProps) {
   const sessions = () => {
     const data = sessionsQuery.data() || [];
     return [...data].sort((a, b) => {
-      const aTime = a.created_at || "";
-      const bTime = b.created_at || "";
-      return aTime > bTime ? -1 : aTime < bTime ? 1 : 0;
+      const aTime = new Date(a.created_at || 0).getTime();
+      const bTime = new Date(b.created_at || 0).getTime();
+      return bTime - aTime;
     });
   };
 

@@ -22,10 +22,14 @@ paths:
               type: object
               required:
                 - yaml_content
+                - cv_id
               properties:
                 yaml_content:
                   type: string
                   description: Full RenderCV YAML document as a string.
+                cv_id:
+                  type: string
+                  description: The cv_document record ID to update with the generated PDF URL.
       responses:
         "200":
           description: Generated PDF file
@@ -58,10 +62,14 @@ components:
       type: object
       required:
         - yaml_content
+        - cv_id
       properties:
         yaml_content:
           type: string
           description: Full RenderCV YAML document as a string.
+        cv_id:
+          type: string
+          description: The cv_document record ID to update with the generated PDF URL.
 
     ErrorResponse:
       type: object

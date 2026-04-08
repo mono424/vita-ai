@@ -18,7 +18,8 @@ def render_yaml_to_pdf(yaml_content: str) -> str:
         )
 
         if result.returncode != 0:
-            raise RuntimeError(f"rendercv failed: {result.stderr}")
+            error_msg = result.stderr or result.stdout or "unknown error"
+            raise RuntimeError(f"rendercv failed: {error_msg}")
 
         # rendercv outputs to rendercv_output/ directory
         output_dir = Path(tmpdir) / "rendercv_output"

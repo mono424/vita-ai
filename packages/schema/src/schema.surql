@@ -347,19 +347,19 @@ PERMISSIONS FULL;
 DEFINE FIELD section_order ON TABLE cv_document TYPE option<array<string>>
 PERMISSIONS FULL;
 
-DEFINE FIELD selected_education ON TABLE cv_document TYPE option<array<record<education_entry>>>
+DEFINE FIELD selected_education ON TABLE cv_document TYPE option<array<string>>
 PERMISSIONS FULL;
 
-DEFINE FIELD selected_experience ON TABLE cv_document TYPE option<array<record<experience_entry>>>
+DEFINE FIELD selected_experience ON TABLE cv_document TYPE option<array<string>>
 PERMISSIONS FULL;
 
-DEFINE FIELD selected_projects ON TABLE cv_document TYPE option<array<record<project_entry>>>
+DEFINE FIELD selected_projects ON TABLE cv_document TYPE option<array<string>>
 PERMISSIONS FULL;
 
-DEFINE FIELD selected_skills ON TABLE cv_document TYPE option<array<record<skill_entry>>>
+DEFINE FIELD selected_skills ON TABLE cv_document TYPE option<array<string>>
 PERMISSIONS FULL;
 
-DEFINE FIELD selected_bullets ON TABLE cv_document TYPE option<array<record<bullet_entry>>>
+DEFINE FIELD selected_bullets ON TABLE cv_document TYPE option<array<string>>
 PERMISSIONS FULL;
 
 DEFINE FIELD include_phone ON TABLE cv_document TYPE option<bool>

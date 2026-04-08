@@ -1,5 +1,6 @@
-import { Show } from 'solid-js';
+import { Show, createSignal, createEffect } from 'solid-js';
 import { FileText, AlertCircle } from 'lucide-solid';
+import { useDownloadFile } from '@spooky-sync/client-solid';
 
 interface CvPreviewProps {
   pdfUrl: string | null;
@@ -9,6 +10,34 @@ interface CvPreviewProps {
 }
 
 export function CvPreview(props: CvPreviewProps) {
+  // @ts-expect-error — bucket name is valid but generic inference doesn't resolve
+  const { url: rawBlobUrl } = useDownloadFile('chat_documents', () => props.pdfUrl);
+  const [pdfBlobUrl, setPdfBlobUrl] = createSignal<string | null>(null);
+
+  // Re-wrap the blob with the correct PDF MIME type so the iframe renders it
+  createEffect(() => {
+    const raw = rawBlobUrl();
+    if (!raw) {
+      setPdfBlobUrl(null);
+      return;
+    }
+
+    let cancelled = false;
+    fetch(raw)
+      .then((r) => r.blob())
+      .then((blob) => {
+        if (cancelled) return;
+        const typed = new Blob([blob], { type: 'application/pdf' });
+        const prev = pdfBlobUrl();
+        if (prev) URL.revokeObjectURL(prev);
+        setPdfBlobUrl(URL.createObjectURL(typed));
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  });
+
   return (
     <div class="h-full flex flex-col rounded-xl border border-white/[0.06] bg-zinc-900/50 overflow-hidden">
       <Show when={props.loading}>
@@ -40,15 +69,15 @@ export function CvPreview(props: CvPreviewProps) {
         </div>
       </Show>
 
-      <Show when={props.pdfUrl && !props.loading && !props.error}>
+      <Show when={pdfBlobUrl() && !props.loading && !props.error}>
         <iframe
-          src={props.pdfUrl!}
+          src={pdfBlobUrl()!}
           class="flex-1 w-full bg-white animate-fade-in"
           title="CV Preview"
         />
       </Show>
 
-      <Show when={!props.pdfUrl && !props.loading && !props.error}>
+      <Show when={!pdfBlobUrl() && !props.loading && !props.error}>
         <div class="flex-1 flex flex-col items-center justify-center gap-4">
           <FileText class="w-12 h-12 text-zinc-700" />
           <p class="text-sm text-zinc-500">No preview yet</p>

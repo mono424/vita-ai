@@ -11,7 +11,6 @@ export const schema = {
         owner: { type: 'string' as const, recordId: true, optional: false },
         section_name: { type: 'string' as const, optional: false },
         sort_order: { type: 'number' as const, optional: true },
-        cv_documents: { type: 'string' as const, optional: true },
       },
       primaryKey: ['id'] as const
     },
@@ -63,13 +62,14 @@ export const schema = {
         owner: { type: 'string' as const, recordId: true, optional: false },
         pdf_url: { type: 'string' as const, optional: true },
         section_order: { type: 'string' as const, optional: true },
-        selected_bullets: { type: 'string' as const, recordId: true, optional: true },
-        selected_education: { type: 'string' as const, recordId: true, optional: true },
-        selected_experience: { type: 'string' as const, recordId: true, optional: true },
-        selected_projects: { type: 'string' as const, recordId: true, optional: true },
-        selected_skills: { type: 'string' as const, recordId: true, optional: true },
+        selected_bullets: { type: 'string' as const, optional: true },
+        selected_education: { type: 'string' as const, optional: true },
+        selected_experience: { type: 'string' as const, optional: true },
+        selected_projects: { type: 'string' as const, optional: true },
+        selected_skills: { type: 'string' as const, optional: true },
         theme: { type: 'string' as const, optional: true },
         title: { type: 'string' as const, optional: false },
+        jobs_renders: { type: 'string' as const, optional: true },
       },
       primaryKey: ['id'] as const
     },
@@ -85,7 +85,6 @@ export const schema = {
         location: { type: 'string' as const, optional: true },
         owner: { type: 'string' as const, recordId: true, optional: false },
         start_date: { type: 'string' as const, optional: true },
-        cv_documents: { type: 'string' as const, optional: true },
       },
       primaryKey: ['id'] as const
     },
@@ -100,7 +99,6 @@ export const schema = {
         owner: { type: 'string' as const, recordId: true, optional: false },
         position: { type: 'string' as const, optional: true },
         start_date: { type: 'string' as const, optional: true },
-        cv_documents: { type: 'string' as const, optional: true },
       },
       primaryKey: ['id'] as const
     },
@@ -148,7 +146,6 @@ export const schema = {
         name: { type: 'string' as const, optional: false },
         owner: { type: 'string' as const, recordId: true, optional: false },
         start_date: { type: 'string' as const, optional: true },
-        cv_documents: { type: 'string' as const, optional: true },
       },
       primaryKey: ['id'] as const
     },
@@ -159,7 +156,6 @@ export const schema = {
         details: { type: 'string' as const, optional: true },
         label: { type: 'string' as const, optional: false },
         owner: { type: 'string' as const, recordId: true, optional: false },
-        cv_documents: { type: 'string' as const, optional: true },
       },
       primaryKey: ['id'] as const
     },
@@ -204,12 +200,6 @@ export const schema = {
       field: 'owner' as const,
       to: 'user' as const,
       cardinality: 'one' as const
-    },
-    {
-      from: 'bullet_entry' as const,
-      field: 'cv_documents' as const,
-      to: 'cv_document' as const,
-      cardinality: 'many' as const
     },
     {
       from: 'chat_file' as const,
@@ -261,32 +251,8 @@ export const schema = {
     },
     {
       from: 'cv_document' as const,
-      field: 'selected_bullets' as const,
-      to: 'bullet_entry' as const,
-      cardinality: 'many' as const
-    },
-    {
-      from: 'cv_document' as const,
-      field: 'selected_education' as const,
-      to: 'education_entry' as const,
-      cardinality: 'many' as const
-    },
-    {
-      from: 'cv_document' as const,
-      field: 'selected_experience' as const,
-      to: 'experience_entry' as const,
-      cardinality: 'many' as const
-    },
-    {
-      from: 'cv_document' as const,
-      field: 'selected_projects' as const,
-      to: 'project_entry' as const,
-      cardinality: 'many' as const
-    },
-    {
-      from: 'cv_document' as const,
-      field: 'selected_skills' as const,
-      to: 'skill_entry' as const,
+      field: 'jobs_renders' as const,
+      to: 'jobs_render' as const,
       cardinality: 'many' as const
     },
     {
@@ -296,22 +262,10 @@ export const schema = {
       cardinality: 'one' as const
     },
     {
-      from: 'education_entry' as const,
-      field: 'cv_documents' as const,
-      to: 'cv_document' as const,
-      cardinality: 'many' as const
-    },
-    {
       from: 'experience_entry' as const,
       field: 'owner' as const,
       to: 'user' as const,
       cardinality: 'one' as const
-    },
-    {
-      from: 'experience_entry' as const,
-      field: 'cv_documents' as const,
-      to: 'cv_document' as const,
-      cardinality: 'many' as const
     },
     {
       from: 'jobs_agent' as const,
@@ -320,28 +274,22 @@ export const schema = {
       cardinality: 'one' as const
     },
     {
+      from: 'jobs_render' as const,
+      field: 'assigned_to' as const,
+      to: 'cv_document' as const,
+      cardinality: 'one' as const
+    },
+    {
       from: 'project_entry' as const,
       field: 'owner' as const,
       to: 'user' as const,
       cardinality: 'one' as const
     },
     {
-      from: 'project_entry' as const,
-      field: 'cv_documents' as const,
-      to: 'cv_document' as const,
-      cardinality: 'many' as const
-    },
-    {
       from: 'skill_entry' as const,
       field: 'owner' as const,
       to: 'user' as const,
       cardinality: 'one' as const
-    },
-    {
-      from: 'skill_entry' as const,
-      field: 'cv_documents' as const,
-      to: 'cv_document' as const,
-      cardinality: 'many' as const
     },
     {
       from: 'social_network' as const,
@@ -477,6 +425,10 @@ export const schema = {
       routes: {
         "/render": {
           args: {
+            "cv_id": {
+              type: 'string' as const,
+              optional: false as const
+            },
             "yaml_content": {
               type: 'string' as const,
               optional: false as const
@@ -771,19 +723,19 @@ PERMISSIONS FOR select, create, update WHERE true;
 DEFINE FIELD section_order ON TABLE cv_document TYPE option<array<string>>
 PERMISSIONS FOR select, create, update WHERE true;
 
-DEFINE FIELD selected_education ON TABLE cv_document TYPE option<array<record<education_entry>>>
+DEFINE FIELD selected_education ON TABLE cv_document TYPE option<array<string>>
 PERMISSIONS FOR select, create, update WHERE true;
 
-DEFINE FIELD selected_experience ON TABLE cv_document TYPE option<array<record<experience_entry>>>
+DEFINE FIELD selected_experience ON TABLE cv_document TYPE option<array<string>>
 PERMISSIONS FOR select, create, update WHERE true;
 
-DEFINE FIELD selected_projects ON TABLE cv_document TYPE option<array<record<project_entry>>>
+DEFINE FIELD selected_projects ON TABLE cv_document TYPE option<array<string>>
 PERMISSIONS FOR select, create, update WHERE true;
 
-DEFINE FIELD selected_skills ON TABLE cv_document TYPE option<array<record<skill_entry>>>
+DEFINE FIELD selected_skills ON TABLE cv_document TYPE option<array<string>>
 PERMISSIONS FOR select, create, update WHERE true;
 
-DEFINE FIELD selected_bullets ON TABLE cv_document TYPE option<array<record<bullet_entry>>>
+DEFINE FIELD selected_bullets ON TABLE cv_document TYPE option<array<string>>
 PERMISSIONS FOR select, create, update WHERE true;
 
 DEFINE FIELD include_phone ON TABLE cv_document TYPE option<bool>
@@ -843,7 +795,7 @@ PERMISSIONS FOR select, create, update WHERE true;
 DEFINE TABLE jobs_render SCHEMAFULL
 PERMISSIONS FOR select, create, update, delete WHERE true;
 
-DEFINE FIELD assigned_to ON TABLE jobs_render TYPE option<record>
+DEFINE FIELD assigned_to ON TABLE jobs_render TYPE option<record<cv_document>>
 PERMISSIONS FOR select, create, update WHERE true;
 
 DEFINE FIELD path ON TABLE jobs_render TYPE option<string>

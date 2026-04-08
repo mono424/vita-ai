@@ -28,7 +28,7 @@ export function buildYaml(input: BuildYamlInput): string {
       name: user.name || 'Your Name',
       location: user.location || undefined,
       email: user.email || undefined,
-      phone: cv.include_phone ? user.phone : undefined,
+      phone: cv.include_phone && user.phone ? user.phone : undefined,
       website: user.website || undefined,
       sections: {},
     },

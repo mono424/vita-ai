@@ -10,8 +10,6 @@ import { useAuth } from "../../auth";
 import { FormField, Input } from "../shared/FormField";
 import { SaveButton } from "../shared/SaveButton";
 
-type User = TableModel<GetTable<typeof schema, "user">>;
-
 export function PersonalInfoForm() {
   const db = useDb<typeof schema>();
   const auth = useAuth();
@@ -25,6 +23,11 @@ export function PersonalInfoForm() {
   const [dirty, setDirty] = createSignal(false);
   const [error, setError] = createSignal<string | null>(null);
 
+  const userQuery = useQuery(
+    () => db.query("user").where({ id: auth.userId()! }).one().build(),
+    { enabled: () => auth.userId() !== null },
+  );
+
   // Track the last-saved values to detect changes
   const [saved, setSaved] = createSignal({
     name: "",
@@ -35,14 +38,14 @@ export function PersonalInfoForm() {
   });
 
   createEffect(() => {
-    const u = auth.user();
+    const u = userQuery.data();
     if (u) {
       const vals = {
-        name: (u as any).name || "",
-        email: (u as any).email || "",
-        phone: (u as any).phone || "",
-        location: (u as any).location || "",
-        website: (u as any).website || "",
+        name: u.name || "",
+        email: u.email || "",
+        phone: u.phone || "",
+        location: u.location || "",
+        website: u.website || "",
       };
       setName(vals.name);
       setEmail(vals.email);
@@ -167,7 +170,9 @@ export function PersonalInfoForm() {
       </Show>
       <Show
         when={dirty()}
-        fallback={<span class="text-sm text-zinc-500 py-2 inline-block">Saved</span>}
+        fallback={
+          <span class="text-sm text-zinc-500 py-2 inline-block">Saved</span>
+        }
       >
         <SaveButton onClick={save} saving={saving()} />
       </Show>

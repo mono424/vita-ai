@@ -3,13 +3,7 @@ import { useDownloadFile } from '@spooky-sync/client-solid';
 import type { ImportSummary } from '../../lib/import-entries';
 
 interface ChatBubbleProps {
-  role: 'user' | 'assistant';
-  content: string;
-  writing: boolean;
-  failed?: boolean;
-  messageId?: string;
-  import_summary?: ImportSummary | null;
-  files?: Array<{ path: string; name: string }>;
+  message: any;
   onRetry?: (messageId: string) => void;
 }
 
@@ -54,16 +48,21 @@ function FileAttachment(props: { file: { path: string; name: string }; isUser: b
 }
 
 export function ChatBubble(props: ChatBubbleProps) {
-  const isUser = () => props.role === 'user';
+  const msg = () => props.message;
+  const isUser = () => msg().role === 'user';
+  const failed = () => msg().jobs_agents?.[0]?.status === 'failed';
+  const files = () => (msg().chat_files || []) as Array<{ path: string; name: string }>;
+  const importSummary = () => msg().import_summary as ImportSummary | null | undefined;
 
   const summaryItems = () => {
-    if (!props.import_summary) return [];
+    const s = importSummary();
+    if (!s) return [];
     const entries: Array<{ label: string; count: number }> = [];
-    if (props.import_summary.education > 0) entries.push({ label: 'education', count: props.import_summary.education });
-    if (props.import_summary.experience > 0) entries.push({ label: 'experience', count: props.import_summary.experience });
-    if (props.import_summary.projects > 0) entries.push({ label: 'projects', count: props.import_summary.projects });
-    if (props.import_summary.skills > 0) entries.push({ label: 'skills', count: props.import_summary.skills });
-    if (props.import_summary.social_networks > 0) entries.push({ label: 'social networks', count: props.import_summary.social_networks });
+    if (s.education > 0) entries.push({ label: 'education', count: s.education });
+    if (s.experience > 0) entries.push({ label: 'experience', count: s.experience });
+    if (s.projects > 0) entries.push({ label: 'projects', count: s.projects });
+    if (s.skills > 0) entries.push({ label: 'skills', count: s.skills });
+    if (s.social_networks > 0) entries.push({ label: 'social networks', count: s.social_networks });
     return entries;
   };
 
@@ -73,13 +72,13 @@ export function ChatBubble(props: ChatBubbleProps) {
         class={`max-w-[85%] text-[13px] leading-[1.6] ${
           isUser()
             ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-[18px] rounded-br-[4px] px-3.5 py-2.5'
-            : props.failed
+            : failed()
               ? 'bg-red-50 dark:bg-red-500/[0.06] text-zinc-500 dark:text-zinc-400 rounded-[18px] rounded-bl-[4px] px-3.5 py-2.5'
               : 'bg-zinc-100 dark:bg-white/[0.06] text-zinc-800 dark:text-zinc-200 rounded-[18px] rounded-bl-[4px] px-3.5 py-2.5'
         }`}
       >
         <Show
-          when={!props.writing}
+          when={!msg().writing}
           fallback={
             <div class="flex items-center gap-1 py-0.5">
               <span class="w-[5px] h-[5px] bg-zinc-400 dark:bg-zinc-500 rounded-full animate-dot-pulse" />
@@ -88,15 +87,15 @@ export function ChatBubble(props: ChatBubbleProps) {
             </div>
           }
         >
-          <Show when={props.content}>
-            <p class="whitespace-pre-wrap">{props.content}</p>
+          <Show when={msg().content}>
+            <p class="whitespace-pre-wrap">{msg().content}</p>
           </Show>
 
           {/* Retry button for failed messages */}
-          <Show when={props.failed && props.messageId && props.onRetry}>
+          <Show when={failed() && props.onRetry}>
             <div class="flex items-center gap-1.5 mt-2 pt-2 border-t border-red-100 dark:border-red-500/10">
               <button
-                onClick={() => props.onRetry?.(props.messageId!)}
+                onClick={() => props.onRetry?.(msg().id)}
                 class="flex items-center gap-1 text-[11px] font-medium text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors group"
               >
                 <svg
@@ -125,15 +124,15 @@ export function ChatBubble(props: ChatBubbleProps) {
           </Show>
 
           {/* File attachments */}
-          <Show when={props.files && props.files.length > 0}>
-            <div class={`flex flex-wrap gap-2 ${props.content ? 'mt-2' : ''}`}>
-              <For each={props.files}>
+          <Show when={files().length > 0}>
+            <div class={`flex flex-wrap gap-2 ${msg().content ? 'mt-2' : ''}`}>
+              <For each={files()}>
                 {(file) => <FileAttachment file={file} isUser={isUser()} />}
               </For>
             </div>
           </Show>
 
-          <Show when={props.import_summary && summaryItems().length > 0}>
+          <Show when={importSummary() && summaryItems().length > 0}>
             <div class={`mt-2 pt-2 ${isUser() ? 'border-t border-white/10' : 'border-t border-zinc-200 dark:border-white/[0.06]'}`}>
               <p class="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 mb-1">Imported:</p>
               <For each={summaryItems()}>
@@ -141,7 +140,7 @@ export function ChatBubble(props: ChatBubbleProps) {
                   <p class="text-[11px] text-zinc-400">{item.count} {item.label}</p>
                 )}
               </For>
-              <Show when={props.import_summary?.user_updated}>
+              <Show when={importSummary()?.user_updated}>
                 <p class="text-[11px] text-zinc-400">Profile updated</p>
               </Show>
             </div>

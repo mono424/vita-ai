@@ -6,7 +6,7 @@ DEFINE TABLE jobs_agent SCHEMAFULL
 PERMISSIONS
   FOR select, create, update, delete WHERE true;
 
-DEFINE FIELD assigned_to ON TABLE jobs_agent TYPE record
+DEFINE FIELD assigned_to ON TABLE jobs_agent TYPE record<chat_message>
 PERMISSIONS
   FOR create, select WHERE true
   FOR update WHERE false;

@@ -39,6 +39,7 @@ export const schema = {
         role: { type: 'string' as const, optional: true },
         writing: { type: 'boolean' as const, optional: true },
         chat_files: { type: 'string' as const, optional: true },
+        jobs_agents: { type: 'string' as const, optional: true },
       },
       primaryKey: ['id'] as const
     },
@@ -234,6 +235,12 @@ export const schema = {
       cardinality: 'many' as const
     },
     {
+      from: 'chat_message' as const,
+      field: 'jobs_agents' as const,
+      to: 'jobs_agent' as const,
+      cardinality: 'many' as const
+    },
+    {
       from: 'chat_session' as const,
       field: 'owner' as const,
       to: 'user' as const,
@@ -304,6 +311,12 @@ export const schema = {
       field: 'cv_documents' as const,
       to: 'cv_document' as const,
       cardinality: 'many' as const
+    },
+    {
+      from: 'jobs_agent' as const,
+      field: 'assigned_to' as const,
+      to: 'chat_message' as const,
+      cardinality: 'one' as const
     },
     {
       from: 'project_entry' as const,
@@ -785,7 +798,7 @@ PERMISSIONS FOR select, create, update WHERE true;
 DEFINE TABLE jobs_agent SCHEMAFULL
 PERMISSIONS FOR select, create, update, delete WHERE true;
 
-DEFINE FIELD assigned_to ON TABLE jobs_agent TYPE option<record>
+DEFINE FIELD assigned_to ON TABLE jobs_agent TYPE option<record<chat_message>>
 PERMISSIONS FOR select, create, update WHERE true;
 
 DEFINE FIELD path ON TABLE jobs_agent TYPE option<string>

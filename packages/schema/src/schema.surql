@@ -294,6 +294,9 @@ PERMISSIONS FULL;
 DEFINE FIELD import_summary ON TABLE chat_message TYPE option<object> FLEXIBLE
 PERMISSIONS FULL;
 
+DEFINE FIELD pending_user_updates ON TABLE chat_message TYPE option<object> FLEXIBLE
+PERMISSIONS FULL;
+
 DEFINE FIELD chat_session ON TABLE chat_message TYPE record<chat_session>
 PERMISSIONS FULL;
 

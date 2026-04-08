@@ -83,6 +83,7 @@ export interface ChatResponse {
   message: string;
   action: 'import_linkedin' | 'import_csv' | 'update_profile' | 'none';
   import_result?: ImportResult;
+  pending_user_updates?: UserUpdates;
 }
 
 export interface ChatGraphState {

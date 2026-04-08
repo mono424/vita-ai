@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://sp00ky.cloud/schema/sp00ky.schema.json
 slug: vita-ai
 mode: singlenode
 deployment:
@@ -30,6 +31,8 @@ backends:
       context: ./packages/render-api
       port: 8000
       healthcheck: /health
+      timeout: 120
+      timeout_overridable: false
   agent:
     type: http
     spec: ./packages/agent-service/openapi.yaml
@@ -48,6 +51,8 @@ backends:
       port: 8767
       env-file: agent.env.local
       healthcheck: /health
+      timeout: 180
+      timeout_overridable: false
 clientTypes:
   - format: typescript
     output: apps/app/src/schema.gen.ts

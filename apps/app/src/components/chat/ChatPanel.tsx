@@ -38,14 +38,13 @@ export function ChatPanel(props: ChatPanelProps) {
     });
   };
 
-  // Auto-select most recent session (don't auto-create)
+  // Auto-select most recent session only on initial load or when active session is deleted
+  const [userSelected, setUserSelected] = createSignal(false);
+
   createEffect(() => {
-    if (sessionsQuery.isLoading()) return;
+    if (sessionsQuery.isLoading() || userSelected()) return;
     const allSessions = sessions();
-    if (activeSessionId()) {
-      if (allSessions.some((s: any) => s.id === activeSessionId())) return;
-    }
-    if (allSessions.length > 0) {
+    if (allSessions.length > 0 && !activeSessionId()) {
       setActiveSessionId(allSessions[0].id);
     }
   });
@@ -63,6 +62,7 @@ export function ChatPanel(props: ChatPanelProps) {
           title: "",
         } as any,
       );
+      setUserSelected(true);
       setActiveSessionId(sessionId);
       setShowSessionList(false);
     } catch (err) {
@@ -93,22 +93,36 @@ export function ChatPanel(props: ChatPanelProps) {
     });
   };
 
-  const isWriting = () => messages().some((m: any) => m.writing);
+  const isWriting = () =>
+    messages().some((m: any) => {
+      if (!m.writing) return false;
+      const jobs = m.jobs_agents || [];
+      if (jobs.length === 0) return m.writing;
+      return jobs.some(
+        (j: any) => j.status === "pending" || j.status === "processing",
+      );
+    });
 
-  // Handle failed jobs: update message content when job fails
+  // Handle failed jobs: update message content when all jobs fail
   const processedFailures = new Set<string>();
 
   createEffect(() => {
     for (const msg of messages()) {
-      const job = msg.jobs_agents?.[0];
+      const jobs = msg.jobs_agents || [];
       if (
-        msg.role === "assistant" &&
-        msg.writing &&
-        job?.status === "failed" &&
-        !processedFailures.has(job.id)
-      ) {
-        processedFailures.add(job.id);
-        const errors = job.errors as any[] | undefined;
+        msg.role !== "assistant" ||
+        !msg.writing ||
+        jobs.length === 0 ||
+        processedFailures.has(msg.id)
+      )
+        continue;
+
+      const allFailed =
+        jobs.length > 0 && jobs.every((j: any) => j.status === "failed");
+      if (allFailed) {
+        processedFailures.add(msg.id);
+        const lastJob = jobs[jobs.length - 1];
+        const errors = lastJob.errors as any[] | undefined;
         const lastError = errors?.length ? errors[errors.length - 1] : null;
         db.update(
           "chat_message" as any,
@@ -175,6 +189,25 @@ export function ChatPanel(props: ChatPanelProps) {
       messagesEndRef?.scrollIntoView({ behavior: "smooth" });
     }, 50);
   });
+
+  const handleConfirmUpdates = async (messageId: string) => {
+    const msg = messages().find((m: any) => m.id === messageId);
+    if (!msg?.pending_user_updates) return;
+    const userId = auth.userId();
+    if (!userId) return;
+
+    await db.update("user" as any, userId as any, msg.pending_user_updates as any);
+    await db.update("chat_message" as any, messageId as any, {
+      pending_user_updates: null,
+      import_summary: { ...(msg.import_summary || {}), user_updated: true },
+    } as any);
+  };
+
+  const handleSkipUpdates = async (messageId: string) => {
+    await db.update("chat_message" as any, messageId as any, {
+      pending_user_updates: null,
+    } as any);
+  };
 
   const handleSend = async (content: string, files: File[] = []) => {
     const userId = auth.userId();
@@ -339,6 +372,32 @@ export function ChatPanel(props: ChatPanelProps) {
     }
   };
 
+  const deleteSession = async (sessionId: string) => {
+    const msgs = (messagesQuery.data() as any[]) || [];
+    const sessionMsgs = msgs.filter(
+      (m: any) => m.chat_session === sessionId,
+    );
+    for (const msg of sessionMsgs) {
+      const files = msg.chat_files || [];
+      for (const f of files) {
+        await db.delete("chat_file" as any, f.id as any);
+      }
+      await db.delete("chat_message" as any, msg.id as any);
+    }
+    await db.delete("chat_session" as any, sessionId as any);
+
+    if (activeSessionId() === sessionId) {
+      const remaining = sessions().filter((s: any) => s.id !== sessionId);
+      if (remaining.length > 0) {
+        setUserSelected(true);
+        setActiveSessionId(remaining[0].id);
+      } else {
+        setUserSelected(false);
+        setActiveSessionId(null);
+      }
+    }
+  };
+
   const activeSessionTitle = () => {
     const session = sessions().find((s: any) => s.id === activeSessionId());
     return session?.title || "New Chat";
@@ -376,26 +435,48 @@ export function ChatPanel(props: ChatPanelProps) {
                 <div class="absolute top-8 left-0 w-60 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-white/[0.08] rounded-xl shadow-[0_4px_24px_-4px_rgba(0,0,0,0.12),0_0_0_1px_rgba(0,0,0,0.04)] z-50 max-h-64 overflow-y-auto py-1">
                   <For each={sessions()}>
                     {(session: any) => (
-                      <button
-                        onClick={() => {
-                          setActiveSessionId(session.id);
-                          setShowSessionList(false);
-                        }}
-                        class={`w-full text-left px-3 py-2 transition-colors ${
+                      <div
+                        class={`flex items-center gap-1 px-3 py-2 transition-colors group ${
                           session.id === activeSessionId()
                             ? "bg-zinc-100 dark:bg-white/[0.08] text-zinc-900 dark:text-white"
                             : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-white/[0.04]"
                         }`}
                       >
-                        <div class="text-[13px] truncate font-medium">
-                          {session.title || "New Chat"}
-                        </div>
-                        <div class="text-[11px] text-zinc-400 dark:text-zinc-500 mt-0.5">
-                          {session.created_at
-                            ? new Date(session.created_at).toLocaleDateString()
-                            : ""}
-                        </div>
-                      </button>
+                        <button
+                          onClick={() => {
+                            setUserSelected(true);
+                            setActiveSessionId(session.id);
+                            setShowSessionList(false);
+                          }}
+                          class="flex-1 text-left min-w-0"
+                        >
+                          <div class="text-[13px] truncate font-medium">
+                            {session.title || "New Chat"}
+                          </div>
+                          <div class="text-[11px] text-zinc-400 dark:text-zinc-500 mt-0.5">
+                            {session.created_at
+                              ? new Date(session.created_at).toLocaleDateString()
+                              : ""}
+                          </div>
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteSession(session.id);
+                          }}
+                          class="p-1 rounded-md text-zinc-400 hover:text-red-400 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                          title="Delete chat"
+                        >
+                          <svg class="w-3 h-3" viewBox="0 0 16 16" fill="none">
+                            <path
+                              d="M4 4l8 8M12 4l-8 8"
+                              stroke="currentColor"
+                              stroke-width="1.5"
+                              stroke-linecap="round"
+                            />
+                          </svg>
+                        </button>
+                      </div>
                     )}
                   </For>
                 </div>
@@ -470,7 +551,12 @@ export function ChatPanel(props: ChatPanelProps) {
           </Show>
           <For each={messages()}>
             {(msg: any) => (
-              <ChatBubble message={msg} onRetry={handleRetry} />
+              <ChatBubble
+                message={msg}
+                onRetry={handleRetry}
+                onConfirmUpdates={handleConfirmUpdates}
+                onSkipUpdates={handleSkipUpdates}
+              />
             )}
           </For>
           <div ref={messagesEndRef} />

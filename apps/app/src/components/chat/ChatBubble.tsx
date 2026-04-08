@@ -5,6 +5,8 @@ import type { ImportSummary } from '../../lib/import-entries';
 interface ChatBubbleProps {
   message: any;
   onRetry?: (messageId: string) => void;
+  onConfirmUpdates?: (messageId: string) => void;
+  onSkipUpdates?: (messageId: string) => void;
 }
 
 function FileAttachment(props: { file: { path: string; name: string }; isUser: boolean }) {
@@ -50,9 +52,18 @@ function FileAttachment(props: { file: { path: string; name: string }; isUser: b
 export function ChatBubble(props: ChatBubbleProps) {
   const msg = () => props.message;
   const isUser = () => msg().role === 'user';
-  const failed = () => msg().jobs_agents?.[0]?.status === 'failed';
+  const jobs = () => (msg().jobs_agents || []) as any[];
+  const failed = () => {
+    const j = jobs();
+    return j.length > 0 && j.every((job: any) => job.status === 'failed');
+  };
+  const retryingJob = () =>
+    jobs().find(
+      (j: any) => (j.status === 'pending' || j.status === 'processing') && j.retries > 0,
+    );
   const files = () => (msg().chat_files || []) as Array<{ path: string; name: string }>;
   const importSummary = () => msg().import_summary as ImportSummary | null | undefined;
+  const pendingUpdates = () => msg().pending_user_updates as Record<string, string> | null | undefined;
 
   const summaryItems = () => {
     const s = importSummary();
@@ -80,11 +91,23 @@ export function ChatBubble(props: ChatBubbleProps) {
         <Show
           when={!msg().writing}
           fallback={
-            <div class="flex items-center gap-1 py-0.5">
-              <span class="w-[5px] h-[5px] bg-zinc-400 dark:bg-zinc-500 rounded-full animate-dot-pulse" />
-              <span class="w-[5px] h-[5px] bg-zinc-400 dark:bg-zinc-500 rounded-full animate-dot-pulse" style="animation-delay: 0.15s" />
-              <span class="w-[5px] h-[5px] bg-zinc-400 dark:bg-zinc-500 rounded-full animate-dot-pulse" style="animation-delay: 0.3s" />
-            </div>
+            <Show
+              when={retryingJob()}
+              fallback={
+                <div class="flex items-center gap-1 py-0.5">
+                  <span class="w-[5px] h-[5px] bg-zinc-400 dark:bg-zinc-500 rounded-full animate-dot-pulse" />
+                  <span class="w-[5px] h-[5px] bg-zinc-400 dark:bg-zinc-500 rounded-full animate-dot-pulse" style="animation-delay: 0.15s" />
+                  <span class="w-[5px] h-[5px] bg-zinc-400 dark:bg-zinc-500 rounded-full animate-dot-pulse" style="animation-delay: 0.3s" />
+                </div>
+              }
+            >
+              <div class="flex items-center gap-1.5 py-0.5 text-[11px] text-amber-500 dark:text-amber-400">
+                <svg class="w-3 h-3 animate-spin" viewBox="0 0 16 16" fill="none">
+                  <path d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13z" stroke="currentColor" stroke-width="1.5" stroke-dasharray="20 12" stroke-linecap="round" />
+                </svg>
+                <span>Retrying {retryingJob()!.retries}/{retryingJob()!.max_retries}</span>
+              </div>
+            </Show>
           }
         >
           <Show when={msg().content}>
@@ -143,6 +166,33 @@ export function ChatBubble(props: ChatBubbleProps) {
               <Show when={importSummary()?.user_updated}>
                 <p class="text-[11px] text-zinc-400">Profile updated</p>
               </Show>
+            </div>
+          </Show>
+
+          <Show when={pendingUpdates()}>
+            <div class="mt-2 pt-2 border-t border-zinc-200 dark:border-white/[0.06]">
+              <p class="text-[11px] font-medium text-zinc-300 mb-1">Proposed profile updates:</p>
+              <For each={Object.entries(pendingUpdates()!)}>
+                {([key, value]) => (
+                  <p class="text-[11px] text-zinc-400">
+                    <span class="text-zinc-500">{key}:</span> {String(value)}
+                  </p>
+                )}
+              </For>
+              <div class="flex gap-2 mt-2">
+                <button
+                  onClick={() => props.onConfirmUpdates?.(msg().id)}
+                  class="text-[11px] px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+                >
+                  Confirm
+                </button>
+                <button
+                  onClick={() => props.onSkipUpdates?.(msg().id)}
+                  class="text-[11px] px-2.5 py-1 rounded-md bg-zinc-700/50 text-zinc-400 hover:bg-zinc-700 transition-colors"
+                >
+                  Skip
+                </button>
+              </div>
             </div>
           </Show>
         </Show>

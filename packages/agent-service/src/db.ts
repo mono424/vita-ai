@@ -59,21 +59,16 @@ export async function updateChatMessage(
   messageId: string,
   content: string,
   importResult?: any,
+  pendingUserUpdates?: any,
 ): Promise<void> {
   const surreal = await getDb();
 
-  const importLine = importResult
-    ? `, import_result = $import_result`
-    : "";
+  const merge: Record<string, any> = { content, writing: false };
+  if (importResult) merge.import_result = importResult;
+  if (pendingUserUpdates) merge.pending_user_updates = pendingUserUpdates;
 
   await surreal.query(
-    `UPDATE <record> $msg_id SET
-      content = $content,
-      writing = false${importLine}`,
-    {
-      msg_id: messageId,
-      content,
-      ...(importResult ? { import_result: importResult } : {}),
-    },
+    `UPDATE <record> $msg_id MERGE $merge`,
+    { msg_id: messageId, merge },
   );
 }

@@ -101,10 +101,5 @@ export async function importEntries(
     summary.social_networks++;
   }
 
-  if (result.user_updates && Object.keys(result.user_updates).length > 0) {
-    await db.update('user' as any, userId as any, result.user_updates as any);
-    summary.user_updated = true;
-  }
-
   return summary;
 }

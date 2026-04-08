@@ -133,21 +133,12 @@ For "chat": just respond helpfully about CV topics. Set "user_updates" to null a
     const intent = parsed.intent || "chat";
 
     if (intent === "update_profile" && parsed.user_updates) {
-      const importResult: ImportResult = {
-        education_entries: [],
-        experience_entries: [],
-        project_entries: [],
-        skill_entries: [],
-        social_networks: [],
-        user_updates: parsed.user_updates,
-      };
-
       return {
         intent: "update_profile",
         response: {
-          message: parsed.reply || "I've updated your profile.",
+          message: parsed.reply || "I'd like to update your profile. Please confirm.",
           action: "update_profile",
-          import_result: importResult,
+          pending_user_updates: parsed.user_updates,
         },
       };
     }
@@ -192,11 +183,20 @@ async function dispatch(
         };
       }
 
+      const importResult = result.result as ImportResult;
+      const userUpdates = importResult.user_updates;
+      if (userUpdates && Object.keys(userUpdates).length > 0) {
+        delete importResult.user_updates;
+      }
+
       return {
         response: {
           message: "I've processed your LinkedIn data and imported your profile entries.",
           action: "import_linkedin",
-          import_result: result.result as ImportResult,
+          import_result: importResult,
+          ...(userUpdates && Object.keys(userUpdates).length > 0
+            ? { pending_user_updates: userUpdates }
+            : {}),
         },
       };
     } catch (err) {
@@ -226,11 +226,20 @@ async function dispatch(
         };
       }
 
+      const csvImportResult = result.result as ImportResult;
+      const csvUserUpdates = csvImportResult.user_updates;
+      if (csvUserUpdates && Object.keys(csvUserUpdates).length > 0) {
+        delete csvImportResult.user_updates;
+      }
+
       return {
         response: {
           message: "I've processed your CSV data and imported the entries.",
           action: "import_csv",
-          import_result: result.result as ImportResult,
+          import_result: csvImportResult,
+          ...(csvUserUpdates && Object.keys(csvUserUpdates).length > 0
+            ? { pending_user_updates: csvUserUpdates }
+            : {}),
         },
       };
     } catch (err) {

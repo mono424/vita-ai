@@ -103,13 +103,14 @@ app.post("/chat", async (req, res) => {
       return;
     }
 
-    const response = result.response as { message?: string; import_result?: any };
+    const response = result.response as { message?: string; import_result?: any; pending_user_updates?: any };
 
     // Update the placeholder message directly in SurrealDB
     await updateChatMessage(
       message_id,
       response?.message || "Done!",
       response?.import_result,
+      response?.pending_user_updates,
     );
 
     res.json({ success: true });

@@ -36,6 +36,7 @@ export const schema = {
         import_summary: { type: 'string' as const, optional: true },
         job_id: { type: 'string' as const, optional: true },
         owner: { type: 'string' as const, recordId: true, optional: false },
+        pending_user_updates: { type: 'string' as const, optional: true },
         role: { type: 'string' as const, optional: true },
         writing: { type: 'boolean' as const, optional: true },
         chat_files: { type: 'string' as const, optional: true },
@@ -722,6 +723,9 @@ DEFINE FIELD import_result ON TABLE chat_message TYPE option<object> FLEXIBLE
 PERMISSIONS FOR select, create, update WHERE true;
 
 DEFINE FIELD import_summary ON TABLE chat_message TYPE option<object> FLEXIBLE
+PERMISSIONS FOR select, create, update WHERE true;
+
+DEFINE FIELD pending_user_updates ON TABLE chat_message TYPE option<object> FLEXIBLE
 PERMISSIONS FOR select, create, update WHERE true;
 
 DEFINE FIELD chat_session ON TABLE chat_message TYPE option<record<chat_session>>

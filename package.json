@@ -11,17 +11,17 @@
     "migrate:create": "spooky migrate create",
     "migrate:apply": "spooky migrate apply --url http://localhost:8666",
     "migrate:status": "spooky migrate status --url http://localhost:8666",
-    "cloud:deploy": "export SP00KY_CLOUD_API=https://api-stg.sp00ky.cloud && npx @spooky-sync/cli@canary cloud deploy",
-    "cloud:logs": "export SP00KY_CLOUD_API=https://api-stg.sp00ky.cloud && npx @spooky-sync/cli@canary cloud logs --split h"
+    "cloud:deploy": "npx @spooky-sync/cli@canary cloud deploy",
+    "cloud:logs": "npx @spooky-sync/cli@canary cloud logs --split h"
   },
   "devDependencies": {
-    "@spooky-sync/cli": "0.0.1-canary.35"
+    "@spooky-sync/cli": "0.0.1-canary.38"
   },
   "pnpm": {
     "overrides": {
-      "@spooky-sync/query-builder": "0.0.1-canary.35",
-      "@spooky-sync/core": "0.0.1-canary.35",
-      "@spooky-sync/ssp-wasm": "0.0.1-canary.35"
+      "@spooky-sync/query-builder": "0.0.1-canary.38",
+      "@spooky-sync/core": "0.0.1-canary.38",
+      "@spooky-sync/ssp-wasm": "0.0.1-canary.38"
     }
   }
 }

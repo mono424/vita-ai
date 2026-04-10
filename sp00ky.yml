@@ -1,4 +1,5 @@
 # yaml-language-server: $schema=https://sp00ky.cloud/schema/sp00ky.schema.json
+cloudApi: https://api-stg.sp00ky.cloud
 slug: vita-ai
 mode: singlenode
 deployment:

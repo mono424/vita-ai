@@ -5,23 +5,23 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  '@spooky-sync/query-builder': 0.0.1-canary.35
-  '@spooky-sync/core': 0.0.1-canary.35
-  '@spooky-sync/ssp-wasm': 0.0.1-canary.35
+  '@spooky-sync/query-builder': 0.0.1-canary.38
+  '@spooky-sync/core': 0.0.1-canary.38
+  '@spooky-sync/ssp-wasm': 0.0.1-canary.38
 
 importers:
 
   .:
     devDependencies:
       '@spooky-sync/cli':
-        specifier: 0.0.1-canary.35
-        version: 0.0.1-canary.35
+        specifier: 0.0.1-canary.38
+        version: 0.0.1-canary.38
 
   apps/app:
     dependencies:
       '@spooky-sync/client-solid':
-        specifier: 0.0.1-canary.35
-        version: 0.0.1-canary.35(solid-js@1.9.11)(tslib@2.8.1)(typescript@5.9.3)
+        specifier: 0.0.1-canary.38
+        version: 0.0.1-canary.38(solid-js@1.9.11)(tslib@2.8.1)(typescript@5.9.3)
       '@tanstack/solid-hotkeys':
         specifier: ^0.4.1
         version: 0.4.1(solid-js@1.9.11)
@@ -702,42 +702,42 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@spooky-sync/cli-darwin-arm64@0.0.1-canary.35':
-    resolution: {integrity: sha512-KxtlYnKahIrTCxNSO7lF8pd3FcyGe9znvZ/UiGxSmPTFAod4YJwSgbw2S4WnW8I6GDuG49b+WG378WAGiFoiTA==}
+  '@spooky-sync/cli-darwin-arm64@0.0.1-canary.38':
+    resolution: {integrity: sha512-cj73vCIlVVr54nc29/wYl6eC2KD4nuJJhd32wR6wjOZSp0q/h9xKPghvD9TkTuL1NCokCsTm+QOTybba6tWU0Q==}
     cpu: [arm64]
     os: [darwin]
 
-  '@spooky-sync/cli-darwin-x64@0.0.1-canary.35':
-    resolution: {integrity: sha512-yDvwAGNk9B/g0qjzWDZgVvetA7BvMqnG7tNf77PrkxTglIGRvTyM3+HyFzDsywIcs3FTFZfI3+5ziM0t6fJmMA==}
+  '@spooky-sync/cli-darwin-x64@0.0.1-canary.38':
+    resolution: {integrity: sha512-JsYfwIem1JMuY27L4t56iyXk8ivs7wINH04iipYNTVPCz6sORZEGME+ILN2u21e/5f6kuWpre6vMrTOIP4Lytw==}
     cpu: [x64]
     os: [darwin]
 
-  '@spooky-sync/cli-linux-arm64@0.0.1-canary.35':
-    resolution: {integrity: sha512-wo6vJ7AjT+gaORRUXdRvHX8T2A60SFSEG4YCUfHbAZLthWzYxGd5uciOMjTIabS3Jwn7da/yt3rEZMIZQ3nzDQ==}
+  '@spooky-sync/cli-linux-arm64@0.0.1-canary.38':
+    resolution: {integrity: sha512-44RNGGEilszmsV3tfKCqjgmuF6K8NvSCj7mw5nAJRsehODljZYZPX0v1lgE824QsKjsYynJ2WIjiK06CLKvc4Q==}
     cpu: [arm64]
     os: [linux]
 
-  '@spooky-sync/cli-linux-x64@0.0.1-canary.35':
-    resolution: {integrity: sha512-6Z1UyJaB0R+6pAYbvKuVTYmfTer/5n+kRZ4ih0ay5b45LTaWYA0Q5iXuT3i1VYnEa+kPJfJ2XNgIa2lkRQKTMQ==}
+  '@spooky-sync/cli-linux-x64@0.0.1-canary.38':
+    resolution: {integrity: sha512-uv17aniAVOH7T8/yBqjXWw1cR0YqbZFHkVlwnwEjzlyAK5AB3wb5emSD+YOGtlqY85m/XghB04cqqnaKu0Z0kQ==}
     cpu: [x64]
     os: [linux]
 
-  '@spooky-sync/cli-win32-x64@0.0.1-canary.35':
-    resolution: {integrity: sha512-QqmhLe0mZ21dtuSGlB0mYE5jJqYVg2QnR2un2hoT4WEeB6C2cPW3XbaBMvzZ1maQHXAH5uQKkpoI6jZZNu9moA==}
+  '@spooky-sync/cli-win32-x64@0.0.1-canary.38':
+    resolution: {integrity: sha512-ExnO79AebxBR2BHNZmeTI7uXQSRBC1cEr1jrhd5vlcQ1b9sHmEXdEepIkYdj9QIuXycUjJfHkdXwrUBDxGbAzQ==}
     cpu: [x64]
     os: [win32]
 
-  '@spooky-sync/cli@0.0.1-canary.35':
-    resolution: {integrity: sha512-vsvg7DXMd/WTh0CGZxbxpl/O2SJIF1do7f90820Ax61C0PJxpjVHQbdGS2EE2qp3I7sgVkZOCim5yPHHzax7ng==}
+  '@spooky-sync/cli@0.0.1-canary.38':
+    resolution: {integrity: sha512-GgFxSLTIgVASy3RPMRiZpdlL02Hp3Oay2dZARnKk8M0AHixu+m/MWV6bmiO+J09FOLOgHu+RpI9YnzvX7I77Hg==}
     hasBin: true
 
-  '@spooky-sync/client-solid@0.0.1-canary.35':
-    resolution: {integrity: sha512-uAM5ydhhEW5MD7YT9PnvC+RLFWBCaFWPTMNiUYOQV0bvlk4NjveWp9MfC0j/8875ZYqJbJU8fVOWAouPgjBOHA==}
+  '@spooky-sync/client-solid@0.0.1-canary.38':
+    resolution: {integrity: sha512-cv88CcZ1nunxOL7PWa0PesWLDkhpyOak20Y9or3F/my0xpIm9vIYPuSXq2BosIKrcgVO6ejXiSl2yQyvx6emcg==}
     peerDependencies:
       solid-js: ^1.x.x
 
-  '@spooky-sync/core@0.0.1-canary.35':
-    resolution: {integrity: sha512-tYcFDLx4KdxrIPMrdtqGKtmCUl59cBz27huCQe1RIfR0ci9pi1RBFaWwwjvt2gc3E+EG7skBi7a/J1W1hzZlug==}
+  '@spooky-sync/core@0.0.1-canary.38':
+    resolution: {integrity: sha512-XFN5GHBoQCskDDU/efFys7ur2QszSTG88ae9Y+3gW1cGTFbPgBHZohiWSTbsncX2DfupdxJEgak+3P11dQmsFw==}
     peerDependencies:
       '@opentelemetry/api': ^1.9.0
       '@opentelemetry/exporter-logs-otlp-proto': ^0.211.0
@@ -756,11 +756,11 @@ packages:
       '@opentelemetry/semantic-conventions':
         optional: true
 
-  '@spooky-sync/query-builder@0.0.1-canary.35':
-    resolution: {integrity: sha512-NjbTRgEohgt0Vqqpl2hT1orgYPms4nVQLQoDzJGSf90KwvW8Mwoq8zb9rMVsNEIH5NmqTbSKWTXJOMo6WlJPuw==}
+  '@spooky-sync/query-builder@0.0.1-canary.38':
+    resolution: {integrity: sha512-rge4CeWJfOVxa6RaQsu5icxXA9udqJCK7ZnQIEfXiGAfQ1FgVi4C48jCeEqPrMa77Tw7be67Fd7qu5xd9puWEw==}
 
-  '@spooky-sync/ssp-wasm@0.0.1-canary.35':
-    resolution: {integrity: sha512-XfEsf5eG/KzjB9uFIX58MFKeCbbznGuv8NSS/QuUbmfvzBbhBncFSH2qHyd12jV8vouPm+FpwWcnAznznnMBzw==}
+  '@spooky-sync/ssp-wasm@0.0.1-canary.38':
+    resolution: {integrity: sha512-Y7C17Ql/E4NLdJ24ESMulShIhxalCsg7JABK6ShhBW+P+K+kVpJHSRpPozXCag7bmhAfiI+hQk6IJZv/fvpJZg==}
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
@@ -2346,33 +2346,33 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.59.0':
     optional: true
 
-  '@spooky-sync/cli-darwin-arm64@0.0.1-canary.35':
+  '@spooky-sync/cli-darwin-arm64@0.0.1-canary.38':
     optional: true
 
-  '@spooky-sync/cli-darwin-x64@0.0.1-canary.35':
+  '@spooky-sync/cli-darwin-x64@0.0.1-canary.38':
     optional: true
 
-  '@spooky-sync/cli-linux-arm64@0.0.1-canary.35':
+  '@spooky-sync/cli-linux-arm64@0.0.1-canary.38':
     optional: true
 
-  '@spooky-sync/cli-linux-x64@0.0.1-canary.35':
+  '@spooky-sync/cli-linux-x64@0.0.1-canary.38':
     optional: true
 
-  '@spooky-sync/cli-win32-x64@0.0.1-canary.35':
+  '@spooky-sync/cli-win32-x64@0.0.1-canary.38':
     optional: true
 
-  '@spooky-sync/cli@0.0.1-canary.35':
+  '@spooky-sync/cli@0.0.1-canary.38':
     optionalDependencies:
-      '@spooky-sync/cli-darwin-arm64': 0.0.1-canary.35
-      '@spooky-sync/cli-darwin-x64': 0.0.1-canary.35
-      '@spooky-sync/cli-linux-arm64': 0.0.1-canary.35
-      '@spooky-sync/cli-linux-x64': 0.0.1-canary.35
-      '@spooky-sync/cli-win32-x64': 0.0.1-canary.35
+      '@spooky-sync/cli-darwin-arm64': 0.0.1-canary.38
+      '@spooky-sync/cli-darwin-x64': 0.0.1-canary.38
+      '@spooky-sync/cli-linux-arm64': 0.0.1-canary.38
+      '@spooky-sync/cli-linux-x64': 0.0.1-canary.38
+      '@spooky-sync/cli-win32-x64': 0.0.1-canary.38
 
-  '@spooky-sync/client-solid@0.0.1-canary.35(solid-js@1.9.11)(tslib@2.8.1)(typescript@5.9.3)':
+  '@spooky-sync/client-solid@0.0.1-canary.38(solid-js@1.9.11)(tslib@2.8.1)(typescript@5.9.3)':
     dependencies:
-      '@spooky-sync/core': 0.0.1-canary.35(tslib@2.8.1)(typescript@5.9.3)
-      '@spooky-sync/query-builder': 0.0.1-canary.35(tslib@2.8.1)(typescript@5.9.3)
+      '@spooky-sync/core': 0.0.1-canary.38(tslib@2.8.1)(typescript@5.9.3)
+      '@spooky-sync/query-builder': 0.0.1-canary.38(tslib@2.8.1)(typescript@5.9.3)
       '@surrealdb/wasm': 3.0.3(surrealdb@2.0.0(tslib@2.8.1)(typescript@5.9.3))
       solid-js: 1.9.11
       surrealdb: 2.0.0(tslib@2.8.1)(typescript@5.9.3)
@@ -2388,10 +2388,10 @@ snapshots:
       - tslib
       - typescript
 
-  '@spooky-sync/core@0.0.1-canary.35(tslib@2.8.1)(typescript@5.9.3)':
+  '@spooky-sync/core@0.0.1-canary.38(tslib@2.8.1)(typescript@5.9.3)':
     dependencies:
-      '@spooky-sync/query-builder': 0.0.1-canary.35(tslib@2.8.1)(typescript@5.9.3)
-      '@spooky-sync/ssp-wasm': 0.0.1-canary.35
+      '@spooky-sync/query-builder': 0.0.1-canary.38(tslib@2.8.1)(typescript@5.9.3)
+      '@spooky-sync/ssp-wasm': 0.0.1-canary.38
       '@surrealdb/wasm': 3.0.3(surrealdb@2.0.0(tslib@2.8.1)(typescript@5.9.3))
       fast-json-patch: 3.1.1
       pino: 10.3.1
@@ -2400,14 +2400,14 @@ snapshots:
       - tslib
       - typescript
 
-  '@spooky-sync/query-builder@0.0.1-canary.35(tslib@2.8.1)(typescript@5.9.3)':
+  '@spooky-sync/query-builder@0.0.1-canary.38(tslib@2.8.1)(typescript@5.9.3)':
     dependencies:
       surrealdb: 2.0.0(tslib@2.8.1)(typescript@5.9.3)
     transitivePeerDependencies:
       - tslib
       - typescript
 
-  '@spooky-sync/ssp-wasm@0.0.1-canary.35': {}
+  '@spooky-sync/ssp-wasm@0.0.1-canary.38': {}
 
   '@standard-schema/spec@1.1.0': {}
 

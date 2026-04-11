@@ -50,7 +50,7 @@ backends:
       dockerfile: ./packages/agent-service/Dockerfile
       context: ./packages/agent-service
       port: 8767
-      env-file: agent.env.local
+      env-file: agent.env.cloud
       healthcheck: /health
       timeout: 180
       timeout_overridable: false

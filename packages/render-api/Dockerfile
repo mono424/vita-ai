@@ -19,6 +19,6 @@ RUN uv sync --frozen --no-dev
 
 COPY render_api/ render_api/
 
-EXPOSE 8000
+EXPOSE 8765
 
-CMD ["uv", "run", "uvicorn", "render_api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uv", "run", "uvicorn", "render_api.main:app", "--host", "0.0.0.0", "--port", "8765"]

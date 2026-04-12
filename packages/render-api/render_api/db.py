@@ -4,30 +4,30 @@ import os
 
 import httpx
 
-SURREAL_URL = os.environ.get("SURREAL_URL", "http://localhost:8666")
-SURREAL_USER = os.environ.get("SURREAL_USER", "root")
-SURREAL_PASS = os.environ.get("SURREAL_PASS", "root")
-SURREAL_NS = os.environ.get("SURREAL_NS", "vitaai")
-SURREAL_DB = os.environ.get("SURREAL_DB", "main")
+SPKY_DB_URL = os.environ.get("SPKY_DB_URL", "http://localhost:8666")
+SPKY_DB_USER = os.environ.get("SPKY_DB_USER", "root")
+SPKY_DB_PASS = os.environ.get("SPKY_DB_PASS", "root")
+SPKY_DB_NS = os.environ.get("SPKY_DB_NS", "vitaai")
+SPKY_DB_NAME = os.environ.get("SPKY_DB_NAME", "main")
 
 
 def _headers() -> dict[str, str]:
     return {
-        "surreal-ns": SURREAL_NS,
-        "surreal-db": SURREAL_DB,
+        "surreal-ns": SPKY_DB_NS,
+        "surreal-db": SPKY_DB_NAME,
         "Accept": "application/json",
         "Content-Type": "text/plain",
     }
 
 
 def _auth() -> tuple[str, str]:
-    return (SURREAL_USER, SURREAL_PASS)
+    return (SPKY_DB_USER, SPKY_DB_PASS)
 
 
 async def _query(sql: str) -> None:
     async with httpx.AsyncClient() as client:
         resp = await client.post(
-            f"{SURREAL_URL}/sql",
+            f"{SPKY_DB_URL}/sql",
             content=sql,
             headers=_headers(),
             auth=_auth(),

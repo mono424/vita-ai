@@ -3,21 +3,22 @@ cloudApi: https://api-stg.sp00ky.cloud
 slug: vita-ai
 mode: singlenode
 deployment:
-  ssp_count: 2
+  sspCount: 2
 schema: packages/schema
 version: canary
 surrealdb:
   namespace: vitaai
   database: main
-frontend:
-  dockerfile: ./apps/app/Dockerfile
-  context: .
-  port: 80
-  env:
-    - VITE_DB_ENDPOINT=wss://vita-ai-db.stg.spky.cloud/rpc
-backends:
+apps:
+  app:
+    type: frontend
+    deploy:
+      dockerfile: ./apps/app/Dockerfile
+      context: .
+      port: 80
+    env: "vault"
   render:
-    type: http
+    type: backend
     spec: ./packages/render-api/openapi.yaml
     baseUrl: http://host.docker.internal:8765
     method:
@@ -33,9 +34,16 @@ backends:
       port: 8765
       healthcheck: /health
       timeout: 120
-      timeout_overridable: false
+      timeoutOverridable: false
+    env:
+      vault:
+        - "SPKY_DB_URL"
+        - "SPKY_DB_USER"
+        - "SPKY_DB_PASS"
+        - "SPKY_DB_NS"
+        - "SPKY_DB_NAME"
   agent:
-    type: http
+    type: backend
     spec: ./packages/agent-service/openapi.yaml
     baseUrl: http://host.docker.internal:8767
     method:
@@ -45,15 +53,14 @@ backends:
     dev:
       type: npm
       script: dev:agent
-      env-file: agent.env.local
     deploy:
       dockerfile: ./packages/agent-service/Dockerfile
       context: ./packages/agent-service
       port: 8767
-      env-file: agent.env.cloud
       healthcheck: /health
       timeout: 180
-      timeout_overridable: false
+      timeoutOverridable: false
+    env: "vault" # implicitly imports all env variables from vault
 clientTypes:
   - format: typescript
     output: apps/app/src/schema.gen.ts

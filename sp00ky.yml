@@ -21,7 +21,9 @@ apps:
       dockerfile: ./apps/app/Dockerfile
       context: .
       port: 80
-    env: "vault"
+    env:
+      vault:
+        - "VITE_DB_ENDPOINT"
   render:
     type: backend
     spec: ./packages/render-api/openapi.yaml

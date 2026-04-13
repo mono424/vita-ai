@@ -9,6 +9,11 @@ version: canary
 surrealdb:
   namespace: vitaai
   database: main
+clientTypes:
+  - format: typescript
+    output: apps/app/src/schema.gen.ts
+buckets:
+  - ./packages/schema/src/buckets/chat_documents.surql
 apps:
   app:
     type: frontend
@@ -61,8 +66,3 @@ apps:
       timeout: 180
       timeoutOverridable: false
     env: "vault" # implicitly imports all env variables from vault
-clientTypes:
-  - format: typescript
-    output: apps/app/src/schema.gen.ts
-buckets:
-  - ./packages/schema/src/buckets/chat_documents.surql
